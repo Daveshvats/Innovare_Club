@@ -693,21 +693,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { teamName, members, contactEmail } = req.body;
       
-      if (!teamName || !contactEmail || !Array.isArray(members)) {
+      if (!teamName || !contactEmail || !Array.isArray(members) || members.length === 0) {
         return res.status(400).json({ message: "Invalid registration data" });
+      }
+
+      // First member should be the team leader
+      const teamLeader = members[0];
+      if (!teamLeader || !teamLeader.name || !teamLeader.email) {
+        return res.status(400).json({ message: "Team leader name and email are required" });
       }
 
       // Create registration
       const registrationData = {
         technofestId: req.params.id,
         teamName: teamName.trim(),
+        teamLeaderName: teamLeader.name.trim(),
+        teamLeaderEmail: teamLeader.email.trim(),
         contactEmail: contactEmail.trim(),
       };
 
       const registration = await storage.createTechfestRegistration(registrationData);
       
-      // Create team members
+      // Create additional team members (skip the first member as it's the leader)
       const memberPromises = members
+        .slice(1)
         .filter(member => member.name && member.name.trim())
         .map(member => {
           return storage.createRegistrationMember({

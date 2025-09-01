@@ -845,7 +845,7 @@ export default function Techfest() {
             >
               <h2 className="mb-4 text-lg sm:text-xl md:text-2xl font-tech font-bold text-gray-900 dark:text-white">{`Register: ${registerEvent.name}`}</h2>
               <div className="mb-4 text-sm text-gray-600 dark:text-gray-300">
-                Team size: {registerEvent.team_min}–{registerEvent.team_max}
+                Team size: {registerEvent.team_min}–{registerEvent.team_max} (includes 1 leader + {registerEvent.team_min - 1}–{registerEvent.team_max - 1} members)
               </div>
 
               <input
@@ -857,6 +857,47 @@ export default function Techfest() {
                 required
                 data-testid="input-team-name"
               />
+
+              {/* Team Leader Section */}
+              <div className="mb-4">
+                <span className="font-tech font-semibold text-tech-blue dark:text-tech-green mb-2 block">Team Leader</span>
+                <div className="space-y-2">
+                  <input
+                    type="text"
+                    value={members[0]?.name || ''}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setMembers((s) => {
+                        const newMembers = [...s];
+                        if (newMembers.length === 0) newMembers.push({ name: '', email: '' });
+                        newMembers[0] = { ...newMembers[0], name: v };
+                        return newMembers;
+                      });
+                    }}
+                    placeholder="Team Leader Name"
+                    className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-tech-blue focus:outline-none focus:ring-2 focus:ring-tech-blue/20"
+                    required
+                    data-testid="input-leader-name"
+                  />
+                  <input
+                    type="email"
+                    value={members[0]?.email || ''}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setMembers((s) => {
+                        const newMembers = [...s];
+                        if (newMembers.length === 0) newMembers.push({ name: '', email: '' });
+                        newMembers[0] = { ...newMembers[0], email: v };
+                        return newMembers;
+                      });
+                    }}
+                    placeholder="Team Leader Email"
+                    className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-tech-blue focus:outline-none focus:ring-2 focus:ring-tech-blue/20"
+                    required
+                    data-testid="input-leader-email"
+                  />
+                </div>
+              </div>
 
               <input
                 type="email"
@@ -871,14 +912,14 @@ export default function Techfest() {
               {/* Dynamic members */}
               <div className="mb-6">
                 <div className="mb-3 flex items-center justify-between">
-                  <span className="font-tech font-semibold text-tech-blue dark:text-tech-green">Team Members</span>
+                  <span className="font-tech font-semibold text-tech-blue dark:text-tech-green">Additional Team Members</span>
                   <div className="flex flex-col sm:flex-row gap-2">
                     <button
                       type="button"
                       onClick={() =>
                         setMembers((m) =>
                           m.length < (registerEvent.team_max || 20)
-                            ? [...m, { name: '' }]
+                            ? [...m, { name: '', email: '' }]
                             : m
                         )
                       }
@@ -891,7 +932,7 @@ export default function Techfest() {
                       type="button"
                       onClick={() =>
                         setMembers((m) =>
-                          m.length > registerEvent.team_min ? m.slice(0, -1) : m
+                          m.length > 1 ? m.slice(0, -1) : m
                         )
                       }
                       className="rounded-md bg-red-500 hover:bg-red-600 px-2 py-1 text-xs text-white transition-colors"
@@ -902,7 +943,7 @@ export default function Techfest() {
                   </div>
                 </div>
 
-                {members.map((mem, idx) => (
+                {members.slice(1).map((mem, idx) => (
                   <div key={idx} className="mb-3 flex flex-col sm:flex-row gap-2">
                     <input
                       type="text"
@@ -910,12 +951,12 @@ export default function Techfest() {
                       onChange={(e) => {
                         const v = e.target.value;
                         setMembers((s) =>
-                          s.map((m, i) => (i === idx ? { ...m, name: v } : m))
+                          s.map((m, i) => (i === idx + 1 ? { ...m, name: v } : m))
                         );
                       }}
                       placeholder={`Member ${idx + 1} name`}
                       className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-tech-blue focus:outline-none focus:ring-2 focus:ring-tech-blue/20"
-                      required={idx < registerEvent.team_min}
+                      required={idx + 1 < registerEvent.team_min}
                       data-testid={`input-member-name-${idx}`}
                     />
                     <input
@@ -924,7 +965,7 @@ export default function Techfest() {
                       onChange={(e) => {
                         const v = e.target.value;
                         setMembers((s) =>
-                          s.map((m, i) => (i === idx ? { ...m, email: v } : m))
+                          s.map((m, i) => (i === idx + 1 ? { ...m, email: v } : m))
                         );
                       }}
                       placeholder="Email (optional)"

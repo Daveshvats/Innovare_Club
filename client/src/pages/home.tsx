@@ -63,18 +63,18 @@ export default function Home() {
             <div className="grid lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-12 items-center">
               <div className="space-y-4 sm:space-y-6">
                 <h3 className="font-tech text-2xl sm:text-3xl lg:text-4xl font-bold text-tech-dark" data-testid="event-title">
-                  AI & Machine Learning Summit 2024
+                  Tech Fest 2025
                 </h3>
                 <p className="text-tech-grey text-sm sm:text-base lg:text-lg leading-relaxed" data-testid="event-description">
-                  Join industry experts and fellow innovators for a deep dive into the future of
-                  artificial intelligence and machine learning applications.
+                  Join the ultimate showcase of innovation and technology where students compete
+                  in exciting technical challenges and showcase their skills.
                 </p>
                 <div className="flex flex-wrap gap-2 sm:gap-3">
                   <span className="px-3 py-1 bg-tech-blue text-white text-xs sm:text-sm rounded-full font-mono">
-                    AI
+                    Programming
                   </span>
                   <span className="px-3 py-1 bg-tech-green text-white text-xs sm:text-sm rounded-full font-mono">
-                    Machine Learning
+                    Tech Competition
                   </span>
                   <span className="px-3 py-1 bg-purple-500 text-white text-xs sm:text-sm rounded-full font-mono">
                     Innovation
@@ -88,13 +88,13 @@ export default function Home() {
                       clipRule="evenodd"
                     ></path>
                   </svg>
-                  <span className="font-mono">December 15, 2024 | 2:00 PM - 6:00 PM</span>
+                  <span className="font-mono">October 3, 2025 | 10:00 AM - 6:00 PM</span>
                 </div>
               </div>
 
               {/* Countdown Timer */}
               <div className="w-full">
-                <CountdownTimer targetDate="2024-12-15T14:00:00" className="w-full" />
+                <CountdownTimer targetDate="2025-10-03T10:00:00" className="w-full" />
               </div>
             </div>
           </div>

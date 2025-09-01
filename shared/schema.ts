@@ -143,6 +143,8 @@ export const techfestRegistrations = pgTable("techfest_registrations", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   technofestId: uuid("technofest_id").notNull().references(() => technofest.id, { onDelete: "cascade" }),
   teamName: text("team_name").notNull(),
+  teamLeaderName: text("team_leader_name").notNull(),
+  teamLeaderEmail: text("team_leader_email").notNull(),
   contactEmail: text("contact_email").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
