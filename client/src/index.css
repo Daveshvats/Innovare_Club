@@ -41,6 +41,7 @@
   --font-mono: 'JetBrains Mono', monospace;
   --font-code: 'Fira Code', monospace;
   --font-tech: 'Orbitron', 'JetBrains Mono', monospace;
+  font-display: swap; /* Prevent FOIT/FOUT */
   --radius: 0.75rem;
   --tech-blue: hsl(221 83% 53%);
   --tech-green: hsl(160 84% 39%);

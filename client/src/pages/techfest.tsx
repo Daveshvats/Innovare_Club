@@ -212,6 +212,7 @@ export default function Techfest() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentEventIndex, setCurrentEventIndex] = useState(0);
+  const [isLayoutStable, setIsLayoutStable] = useState(false);
   const [scrollY, setScrollY] = useState(0);
 
   // Registration state
@@ -289,6 +290,8 @@ export default function Techfest() {
         setEvents(sampleEvents);
       } finally {
         setLoading(false);
+        // Stabilize layout after content loads to prevent scroll snap issues
+        setTimeout(() => setIsLayoutStable(true), 600);
       }
     })();
   }, []);
@@ -468,6 +471,8 @@ export default function Techfest() {
         ref={heroRef}
         className="min-h-screen relative overflow-hidden"
         style={{
+          minHeight: 'calc(100vh - 4rem)', // Account for navbar height
+          height: 'calc(100vh - 4rem)',
           background: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 25%, #a8edea 50%, #fed6e3 75%, #d299c2 100%)'
         }}
         data-testid="techfest-hero-section"
@@ -476,55 +481,53 @@ export default function Techfest() {
         <div className="absolute inset-0 z-0">
           <TechFestBackground />
         </div>
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center">
-          <div className="w-full relative z-20">
-            <div className="text-center lg:text-center order-2 lg:order-1 space-y-6 lg:space-y-8 w-full">
-              <div className="text-sm font-tech font-bold uppercase tracking-widest text-orange-300/80 mb-4 animate-slide-left">
-                VAISH SOCIETY OF EDUCATION PRESENTS
-              </div>
-              <motion.h1 
-                className="font-tech text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-black leading-none mb-8 animate-slide-left"
-                style={{
-                  background: 'linear-gradient(135deg, #000000 0%, #333333 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text'
-                }}
-                initial={{ opacity: 0, y: 50 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.2 }}
-              >
-                TECH<br />FEST'25
-              </motion.h1>
-              <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.5 }}
-                className="mb-8"
-              >
-                {!selectedCategory ? (
-                  <HoverBorderGradient
-                    as="button"
-                    onClick={() => setShowCategoryDialog(true)}
-                    className="px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-500 text-white font-tech font-bold text-lg tracking-wide"
-                    containerClassName="rounded-full"
-                    data-testid="button-get-started"
-                  >
-                    GET STARTED →
-                  </HoverBorderGradient>
-                ) : (
-                  <HoverBorderGradient
-                    as="button"
-                    onClick={handleBackToCategories}
-                    className="px-8 py-4 bg-gradient-to-r from-gray-700 to-gray-900 text-white font-tech font-bold text-lg tracking-wide"
-                    containerClassName="rounded-full"
-                    data-testid="button-back-to-categories-hero"
-                  >
-                    ← BACK TO CATEGORIES
-                  </HoverBorderGradient>
-                )}
-              </motion.div>
+        <div className="w-full h-full flex items-center justify-center px-4 sm:px-6 lg:px-8">
+          <div className="text-center space-y-6 lg:space-y-8 w-full max-w-4xl mx-auto relative z-20">
+            <div className="text-sm font-tech font-bold uppercase tracking-widest text-orange-300/80 mb-4 text-center">
+              VAISH SOCIETY OF EDUCATION PRESENTS
             </div>
+            <motion.h1 
+              className="font-tech text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-black leading-none mb-8 text-center"
+              style={{
+                background: 'linear-gradient(135deg, #000000 0%, #333333 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text'
+              }}
+              initial={{ opacity: 1, x: 0, y: 0 }}
+              animate={{ opacity: 1, x: 0, y: 0 }}
+              transition={{ duration: 0.1 }}
+            >
+              TECH<br />FEST'25
+            </motion.h1>
+            <motion.div
+              initial={{ opacity: 1, x: 0, y: 0 }}
+              animate={{ opacity: 1, x: 0, y: 0 }}
+              transition={{ duration: 0.1 }}
+              className="mb-8"
+            >
+              {!selectedCategory ? (
+                <HoverBorderGradient
+                  as="button"
+                  onClick={() => setShowCategoryDialog(true)}
+                  className="px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-500 text-white font-tech font-bold text-lg tracking-wide"
+                  containerClassName="rounded-full"
+                  data-testid="button-get-started"
+                >
+                  GET STARTED →
+                </HoverBorderGradient>
+              ) : (
+                <HoverBorderGradient
+                  as="button"
+                  onClick={handleBackToCategories}
+                  className="px-8 py-4 bg-gradient-to-r from-gray-700 to-gray-900 text-white font-tech font-bold text-lg tracking-wide"
+                  containerClassName="rounded-full"
+                  data-testid="button-back-to-categories-hero"
+                >
+                  ← BACK TO CATEGORIES
+                </HoverBorderGradient>
+              )}
+            </motion.div>
           </div>
         </div>
 
@@ -579,7 +582,13 @@ export default function Techfest() {
             )}
 
             {/* Event Pages with Snap Scrolling */}
-            <div className="h-screen overflow-y-scroll snap-y snap-mandatory scroll-smooth relative">
+            <div 
+              className="overflow-y-scroll scroll-smooth relative"
+              style={{
+                height: 'calc(100vh - 4rem)',
+                scrollSnapType: isLayoutStable && filteredEvents.length > 0 ? 'y mandatory' : 'none'
+              }}
+            >
               {filteredEvents.map((event, idx) => (
                 <motion.div
                   key={event.id}

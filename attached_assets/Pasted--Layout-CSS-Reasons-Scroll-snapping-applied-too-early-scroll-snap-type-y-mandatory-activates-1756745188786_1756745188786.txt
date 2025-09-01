@@ -1,0 +1,74 @@
+🟦 Layout & CSS Reasons
+
+Scroll snapping applied too early
+
+scroll-snap-type: y mandatory; activates before the DOM finishes rendering, so the browser snaps to the “wrong” spot and then corrects.
+
+Dynamic height mismatch
+
+A section isn’t exactly 100vh on first render (due to padding, margin, or missing CSS).
+
+Causes the snap point to be miscalculated until layout stabilizes.
+
+Scrollbar appearing late
+
+If the scrollbar is hidden until overflow happens, the layout width/height changes → triggers a reflow.
+
+Animations shifting content
+
+Framer Motion or CSS animations (e.g., scale, translateY, opacity: 0 → 1) may move content into position after layout is already calculated.
+
+Fonts loading late
+
+Custom fonts (Google Fonts, local tech font) cause FOIT/FOUT (Flash of Invisible/Unstyled Text). Text reflows once the font loads, shifting positions.
+
+🟩 JavaScript / React Reasons
+
+Auto scroll on mount
+
+Code like:
+
+useEffect(() => window.scrollTo(0, 0), []);
+
+
+conflicts with snap behavior, causing a flicker/jump.
+
+Delayed state-based rendering
+
+Components depending on useEffect, async data, or conditional rendering ({show && <div>...) cause DOM changes after initial paint.
+
+Spline background canvas
+
+The Spline canvas resizes itself dynamically after load, which pushes or pulls your sections vertically.
+
+React Strict Mode double render
+
+In development, Strict Mode mounts/unmounts twice, which can double-trigger your snap logic or scroll resets.
+
+🟨 Browser & Environment Reasons
+
+Mobile viewport quirks
+
+On mobile browsers, 100vh isn’t stable because of the URL bar hiding/showing. First render uses full screen height, then it shrinks → content jumps.
+
+Different scrollbar policies
+
+Safari, Chrome, Firefox handle scroll snapping slightly differently (especially on initial render). Safari is notorious for snap “jitter.”
+
+Hardware acceleration / GPU timing
+
+Complex animations (like Spline or large transforms) sometimes render one frame late → making it look like the section “snapped” after load.
+
+Slow network causing late resource load
+
+If background images, spline scenes, or large assets load after the first frame, the page expands → scroll recalculates → snap triggers.
+
+✅ Most likely in your case:
+
+Spline background resize (8)
+
+Scroll snap applied too early (1)
+
+Animations/Framer Motion shifting content (4)
+
+Fonts loading late (5)
