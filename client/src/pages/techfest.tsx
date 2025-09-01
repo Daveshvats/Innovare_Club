@@ -220,15 +220,15 @@ export default function Techfest() {
             name: 'Digital Art Showcase',
             number: 1,
             category: 'Cultural',
-            shortDescription: 'Express your creativity through digital art and design',
+            short_description: 'Express your creativity through digital art and design',
             description: 'Create stunning digital artwork using modern tools and showcase your artistic vision.',
             rules: ['Individual participation', 'Original artwork only', 'Submit in high resolution'],
-            teamMin: 1,
-            teamMax: 1,
-            splineRightUrl: "https://prod.spline.design/xpETVksa9bPLWNHs/scene.splinecode",
-            isActive: true,
-            createdAt: new Date(),
-            updatedAt: new Date(),
+            team_min: 1,
+            team_max: 1,
+            spline_right_url: "https://prod.spline.design/xpETVksa9bPLWNHs/scene.splinecode",
+            is_active: true,
+            created_at: new Date(),
+            updated_at: new Date(),
           },
           {
             id: '2',
@@ -236,15 +236,15 @@ export default function Techfest() {
             name: 'Algorithm Master',
             number: 2,
             category: 'Technical',
-            shortDescription: 'Solve complex algorithmic challenges and optimize your code',
+            short_description: 'Solve complex algorithmic challenges and optimize your code',
             description: 'Test your programming skills with challenging algorithmic problems.',
             rules: ['Individual or team of 2', 'Any programming language', '3 hour time limit'],
-            teamMin: 1,
-            teamMax: 2,
-            splineRightUrl: "https://prod.spline.design/xpETVksa9bPLWNHs/scene.splinecode",
-            isActive: true,
-            createdAt: new Date(),
-            updatedAt: new Date(),
+            team_min: 1,
+            team_max: 2,
+            spline_right_url: "https://prod.spline.design/xpETVksa9bPLWNHs/scene.splinecode",
+            is_active: true,
+            created_at: new Date(),
+            updated_at: new Date(),
           },
           {
             id: '3',
@@ -252,15 +252,15 @@ export default function Techfest() {
             name: 'E-Sports Championship',
             number: 3,
             category: 'Sports',
-            shortDescription: 'Compete in the ultimate gaming tournament',
+            short_description: 'Compete in the ultimate gaming tournament',
             description: 'Battle it out in popular games and showcase your gaming skills.',
             rules: ['Team of 5 players', 'Bring your own devices', 'Fair play required'],
-            teamMin: 5,
-            teamMax: 5,
-            splineRightUrl: "https://prod.spline.design/xpETVksa9bPLWNHs/scene.splinecode",
-            isActive: true,
-            createdAt: new Date(),
-            updatedAt: new Date(),
+            team_min: 5,
+            team_max: 5,
+            spline_right_url: "https://prod.spline.design/xpETVksa9bPLWNHs/scene.splinecode",
+            is_active: true,
+            created_at: new Date(),
+            updated_at: new Date(),
           }
         ];
         setEvents(sampleEvents);
@@ -282,32 +282,44 @@ export default function Techfest() {
     }
   }, [selectedCategory, events]);
 
-  // Handle scroll-based event switching
+  // Handle scroll-based event switching with intersection observer
   useEffect(() => {
     if (filteredEvents.length === 0) return;
 
-    const handleScroll = () => {
-      const scrollPosition = window.scrollY;
-      const windowHeight = window.innerHeight;
-      const eventSectionStart = windowHeight; // Events start after hero section
-      
-      if (scrollPosition > eventSectionStart) {
-        const newIndex = Math.floor((scrollPosition - eventSectionStart) / windowHeight);
-        if (newIndex !== currentEventIndex && newIndex < filteredEvents.length && newIndex >= 0) {
-          setCurrentEventIndex(newIndex);
-        }
-      }
+    const observerOptions = {
+      root: null,
+      rootMargin: '-20% 0px -20% 0px',
+      threshold: 0.3
     };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [currentEventIndex, filteredEvents.length]);
+    const observerCallback = (entries: IntersectionObserverEntry[]) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const index = parseInt(entry.target.getAttribute('data-event-index') || '0');
+          if (index !== currentEventIndex) {
+            setCurrentEventIndex(index);
+          }
+        }
+      });
+    };
+
+    const observer = new IntersectionObserver(observerCallback, observerOptions);
+    
+    // Observe all event sections
+    const eventSections = document.querySelectorAll('[data-event-index]');
+    eventSections.forEach(section => observer.observe(section));
+
+    return () => {
+      eventSections.forEach(section => observer.unobserve(section));
+      observer.disconnect();
+    };
+  }, [filteredEvents.length, currentEventIndex]);
 
   // Registration handlers
   useEffect(() => {
     if (!registerEvent) return;
     setMembers((cur) => {
-      const want = Math.max(registerEvent.teamMin || 1, 1);
+      const want = Math.max(registerEvent.team_min || 1, 1);
       if (cur.length >= want) return cur;
       const add = Array.from({ length: want - cur.length }, () => ({ name: '' }));
       return [...cur, ...add];
@@ -320,11 +332,11 @@ export default function Techfest() {
 
     const filled = members.filter((m) => m.name.trim().length > 0);
     if (
-      filled.length < registerEvent.teamMin ||
-      filled.length > registerEvent.teamMax
+      filled.length < registerEvent.team_min ||
+      filled.length > registerEvent.team_max
     ) {
       alert(
-        `Please provide between ${registerEvent.teamMin} and ${registerEvent.teamMax} team members.`
+        `Please provide between ${registerEvent.team_min} and ${registerEvent.team_max} team members.`
       );
       return;
     }
@@ -483,53 +495,70 @@ export default function Techfest() {
             )}
 
             {/* Event Pages */}
-            <div className="snap-y snap-mandatory">
+            <div className="space-y-8 md:space-y-16">
               {filteredEvents.map((event, idx) => (
-                <div
+                <motion.div
                   key={event.id}
-                  className="min-h-screen snap-start bg-gradient-to-br from-tech-light/50 via-background/50 to-gray-50/50 backdrop-blur-sm"
+                  data-event-index={idx}
+                  className="min-h-screen bg-gradient-to-br from-tech-light/50 via-background/50 to-gray-50/50 backdrop-blur-sm"
+                  initial={{ opacity: 0, y: 50 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-100px" }}
+                  transition={{ duration: 0.6, delay: 0.2 }}
                 >
-                  <div className="responsive-container py-20">
-                    <div className="grid lg:grid-cols-2 gap-12 items-center">
+                  <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20">
+                    <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
                       {/* Event Content */}
-                      <div className="space-y-6">
-                        <div className="text-sm font-tech font-bold uppercase tracking-widest text-tech-blue">
+                      <motion.div 
+                        className="space-y-4 md:space-y-6 order-2 lg:order-1"
+                        initial={{ opacity: 0, x: -50 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.6, delay: 0.3 }}
+                      >
+                        <div className="text-xs md:text-sm font-tech font-bold uppercase tracking-widest text-tech-blue">
                           Event #{event.number || idx + 1}
                         </div>
-                        <h3 className="font-tech text-4xl sm:text-5xl lg:text-6xl font-bold text-tech-dark leading-tight">
+                        <h3 className="font-tech text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-tech-dark leading-tight">
                           {event.name}
                         </h3>
-                        <p className="text-lg sm:text-xl text-tech-grey leading-relaxed">
-                          {event.shortDescription}
+                        <p className="text-base md:text-lg lg:text-xl text-tech-grey leading-relaxed">
+                          {event.short_description}
                         </p>
                         <div className="flex flex-wrap gap-2">
-                          <span className="px-3 py-1 bg-tech-blue text-white text-sm rounded-full font-mono">
+                          <span className="px-2 md:px-3 py-1 bg-tech-blue text-white text-xs md:text-sm rounded-full font-mono">
                             {event.category}
                           </span>
-                          <span className="px-3 py-1 bg-tech-green text-white text-sm rounded-full font-mono">
-                            Team: {event.teamMin}–{event.teamMax}
+                          <span className="px-2 md:px-3 py-1 bg-tech-green text-white text-xs md:text-sm rounded-full font-mono">
+                            Team: {event.team_min}–{event.team_max}
                           </span>
                         </div>
-                        <div className="flex gap-4">
+                        <div className="flex flex-col sm:flex-row gap-3 md:gap-4 pt-2 md:pt-4">
                           <button
                             onClick={() => setRegisterEvent(event)}
-                            className="px-8 py-4 tech-gradient text-white font-tech font-semibold rounded-xl hover:shadow-lg transition-all transform hover:-translate-y-1 hover-lift"
+                            className="w-full sm:w-auto px-6 md:px-8 py-3 md:py-4 tech-gradient text-white font-tech font-semibold rounded-xl hover:shadow-lg transition-all transform hover:-translate-y-1 hover-lift text-sm md:text-base"
                             data-testid={`button-register-${event.id}`}
                           >
                             Register Now
                           </button>
                           <button
                             onClick={() => setLearnMoreEvent(event)}
-                            className="px-8 py-4 border-2 border-tech-blue text-tech-blue font-tech font-semibold rounded-xl hover:bg-tech-blue hover:text-white transition-all hover-lift"
+                            className="w-full sm:w-auto px-6 md:px-8 py-3 md:py-4 border-2 border-tech-blue text-tech-blue font-tech font-semibold rounded-xl hover:bg-tech-blue hover:text-white transition-all hover-lift text-sm md:text-base"
                             data-testid={`button-learn-more-${event.id}`}
                           >
                             Learn More
                           </button>
                         </div>
-                      </div>
+                      </motion.div>
 
                       {/* Event Visual */}
-                      <div className="geometric-card p-8 rounded-2xl">
+                      <motion.div 
+                        className="geometric-card p-4 md:p-6 lg:p-8 rounded-2xl order-1 lg:order-2"
+                        initial={{ opacity: 0, x: 50 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.6, delay: 0.4 }}
+                      >
                         {event.spline_right_url ? (
                           <div className="aspect-square spline-container rounded-xl overflow-hidden">
                             <DynamicSplineComponent
@@ -541,12 +570,12 @@ export default function Techfest() {
                         ) : (
                           <div className="aspect-square bg-gradient-to-br from-tech-blue to-tech-green rounded-xl flex items-center justify-center">
                             <div className="text-center text-white">
-                              <div className="text-6xl font-tech font-bold mb-4">#{event.number || idx + 1}</div>
-                              <div className="text-xl font-tech uppercase tracking-wider">{event.category}</div>
+                              <div className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-tech font-bold mb-2 md:mb-4">#{event.number || idx + 1}</div>
+                              <div className="text-sm sm:text-base md:text-lg lg:text-xl font-tech uppercase tracking-wider">{event.category}</div>
                             </div>
                           </div>
                         )}
-                      </div>
+                      </motion.div>
                     </div>
 
                     {/* Scroll indicator */}
@@ -560,7 +589,7 @@ export default function Techfest() {
                       </div>
                     )}
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
           </div>
@@ -660,12 +689,12 @@ export default function Techfest() {
             <div className="max-h-[80vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-background p-8 shadow-2xl border border-border">
               <h2 className="mb-4 text-3xl font-tech font-bold text-tech-dark">{learnMoreEvent.name}</h2>
 
-              {learnMoreEvent.youtubeUrl && (
+              {learnMoreEvent.youtube_url && (
                 <div className="mb-6">
                   <iframe
                     width="100%"
                     height="315"
-                    src={toEmbedUrl(learnMoreEvent.youtubeUrl)}
+                    src={toEmbedUrl(learnMoreEvent.youtube_url)}
                     frameBorder="0"
                     allowFullScreen
                     className="rounded-lg"
@@ -695,7 +724,7 @@ export default function Techfest() {
                   <strong className="text-tech-blue">Category:</strong> {learnMoreEvent.category}
                 </div>
                 <div className="geometric-card p-3 rounded-lg">
-                  <strong className="text-tech-blue">Team size:</strong> {learnMoreEvent.teamMin}–{learnMoreEvent.teamMax}
+                  <strong className="text-tech-blue">Team size:</strong> {learnMoreEvent.team_min}–{learnMoreEvent.team_max}
                 </div>
               </div>
 
@@ -718,7 +747,7 @@ export default function Techfest() {
             >
               <h2 className="mb-4 text-2xl font-tech font-bold text-tech-dark">{`Register: ${registerEvent.name}`}</h2>
               <div className="mb-4 text-sm text-tech-grey">
-                Team size: {registerEvent.teamMin}–{registerEvent.teamMax}
+                Team size: {registerEvent.team_min}–{registerEvent.team_max}
               </div>
 
               <input
@@ -750,7 +779,7 @@ export default function Techfest() {
                       type="button"
                       onClick={() =>
                         setMembers((m) =>
-                          m.length < (registerEvent.teamMax || 20)
+                          m.length < (registerEvent.team_max || 20)
                             ? [...m, { name: '' }]
                             : m
                         )
@@ -764,7 +793,7 @@ export default function Techfest() {
                       type="button"
                       onClick={() =>
                         setMembers((m) =>
-                          m.length > registerEvent.teamMin ? m.slice(0, -1) : m
+                          m.length > registerEvent.team_min ? m.slice(0, -1) : m
                         )
                       }
                       className="rounded-md bg-red-500 hover:bg-red-600 px-2 py-1 text-xs text-white transition-colors"
@@ -788,7 +817,7 @@ export default function Techfest() {
                       }}
                       placeholder={`Member ${idx + 1} name`}
                       className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-foreground placeholder-muted-foreground focus:border-tech-blue focus:outline-none"
-                      required={idx < registerEvent.teamMin}
+                      required={idx < registerEvent.team_min}
                       data-testid={`input-member-name-${idx}`}
                     />
                     <input
