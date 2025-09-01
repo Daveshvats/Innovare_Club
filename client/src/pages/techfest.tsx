@@ -503,7 +503,7 @@ export default function Techfest() {
               initial={{ opacity: 1 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.1 }}
-              className="mb-8"
+              className="mb-8 flex justify-center"
             >
               {!selectedCategory ? (
                 <HoverBorderGradient

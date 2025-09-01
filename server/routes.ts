@@ -972,6 +972,16 @@ app.post("/api/technofest/:id/register", async (req, res) => {
   try {
     const { teamName, contactEmail, members } = req.body;
     
+    if (!Array.isArray(members) || members.length === 0) {
+      return res.status(400).json({ message: "Invalid registration data - members array required" });
+    }
+
+    // First member should be the team leader
+    const teamLeader = members[0];
+    if (!teamLeader || !teamLeader.name || !teamLeader.email) {
+      return res.status(400).json({ message: "Team leader name and email are required" });
+    }
+    
     // Validate team size against event requirements
     const event = await storage.getTechnofestEvent(req.params.id);
     if (!event) {
@@ -979,22 +989,24 @@ app.post("/api/technofest/:id/register", async (req, res) => {
     }
 
     const validMembers = members.filter(m => m.name?.trim());
-    if (validMembers.length < event.teamMin || validMembers.length > event.teamMax) {
+    if (validMembers.length < event.team_min || validMembers.length > event.team_max) {
       return res.status(400).json({ 
-        message: `Team size must be between ${event.teamMin} and ${event.teamMax} members` 
+        message: `Team size must be between ${event.team_min} and ${event.team_max} members` 
       });
     }
 
     const registrationData = {
       technofestId: req.params.id,
       teamName: teamName.trim(),
+      teamLeaderName: teamLeader.name.trim(),
+      teamLeaderEmail: teamLeader.email.trim(),
       contactEmail: contactEmail.trim(),
     };
 
     const registration = await storage.createTechfestRegistration(registrationData);
     
-    // Create registration members
-    const memberData = validMembers.map(member => ({
+    // Create additional registration members (skip the first member as it's the leader)
+    const memberData = validMembers.slice(1).map(member => ({
       registrationId: registration.id,
       name: member.name.trim(),
       email: member.email?.trim() || null,
