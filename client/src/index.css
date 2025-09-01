@@ -1,0 +1,384 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@300;400;500;600;700;800&family=Fira+Code:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: hsl(0 0% 100%);
+  --foreground: hsl(220 13% 18%);
+  --card: hsl(220 13% 97%);
+  --card-foreground: hsl(220 13% 18%);
+  --popover: hsl(0 0% 100%);
+  --popover-foreground: hsl(220 13% 18%);
+  --primary: hsl(221 83% 53%);
+  --primary-foreground: hsl(0 0% 100%);
+  --secondary: hsl(210 40% 98%);
+  --secondary-foreground: hsl(220 13% 18%);
+  --muted: hsl(220 13% 95%);
+  --muted-foreground: hsl(220 13% 45%);
+  --accent: hsl(220 13% 95%);
+  --accent-foreground: hsl(220 13% 18%);
+  --destructive: hsl(0 72% 51%);
+  --destructive-foreground: hsl(0 0% 100%);
+  --border: hsl(220 13% 91%);
+  --input: hsl(220 13% 91%);
+  --ring: hsl(221 83% 53%);
+  --chart-1: hsl(221 83% 53%);
+  --chart-2: hsl(160 84% 39%);
+  --chart-3: hsl(43 74% 49%);
+  --chart-4: hsl(27 87% 67%);
+  --chart-5: hsl(12 76% 61%);
+  --sidebar: hsl(220 13% 97%);
+  --sidebar-foreground: hsl(220 13% 18%);
+  --sidebar-primary: hsl(221 83% 53%);
+  --sidebar-primary-foreground: hsl(0 0% 100%);
+  --sidebar-accent: hsl(220 13% 95%);
+  --sidebar-accent-foreground: hsl(220 13% 18%);
+  --sidebar-border: hsl(220 13% 91%);
+  --sidebar-ring: hsl(221 83% 53%);
+  --font-sans: 'Space Grotesk', 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-code: 'Fira Code', monospace;
+  --font-tech: 'Orbitron', 'JetBrains Mono', monospace;
+  --radius: 0.75rem;
+  --tech-blue: hsl(221 83% 53%);
+  --tech-green: hsl(160 84% 39%);
+  --tech-dark: hsl(220 13% 18%);
+  --tech-grey: hsl(220 13% 45%);
+  --tech-light: hsl(220 40% 98%);
+}
+
+.dark {
+  --background: hsl(224 71% 4%);
+  --foreground: hsl(213 31% 91%);
+  --card: hsl(224 71% 4%);
+  --card-foreground: hsl(213 31% 91%);
+  --popover: hsl(224 71% 4%);
+  --popover-foreground: hsl(213 31% 91%);
+  --primary: hsl(221 83% 53%);
+  --primary-foreground: hsl(0 0% 100%);
+  --secondary: hsl(215 28% 17%);
+  --secondary-foreground: hsl(213 31% 91%);
+  --muted: hsl(215 28% 17%);
+  --muted-foreground: hsl(217 11% 65%);
+  --accent: hsl(215 28% 17%);
+  --accent-foreground: hsl(213 31% 91%);
+  --destructive: hsl(0 63% 31%);
+  --destructive-foreground: hsl(213 31% 91%);
+  --border: hsl(215 28% 17%);
+  --input: hsl(215 28% 17%);
+  --ring: hsl(221 83% 53%);
+  --chart-1: hsl(221 83% 53%);
+  --chart-2: hsl(160 84% 39%);
+  --chart-3: hsl(43 74% 49%);
+  --chart-4: hsl(27 87% 67%);
+  --chart-5: hsl(12 76% 61%);
+  --sidebar: hsl(224 71% 4%);
+  --sidebar-foreground: hsl(213 31% 91%);
+  --sidebar-primary: hsl(221 83% 53%);
+  --sidebar-primary-foreground: hsl(0 0% 100%);
+  --sidebar-accent: hsl(215 28% 17%);
+  --sidebar-accent-foreground: hsl(213 31% 91%);
+  --sidebar-border: hsl(215 28% 17%);
+  --sidebar-ring: hsl(221 83% 53%);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@layer components {
+  .tech-gradient {
+    background: linear-gradient(135deg, var(--tech-blue) 0%, var(--tech-green) 100%);
+  }
+
+  .geometric-card {
+    background: linear-gradient(135deg, hsl(0 0% 100%) 0%, hsl(220 40% 98%) 100%);
+    box-shadow: 0 4px 20px hsla(220 13% 18% / 0.08);
+    border: 1px solid hsl(220 13% 91%);
+  }
+
+  .spline-container {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: hsla(220 40% 98% / 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.8s ease-in-out;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.6s ease-out;
+  }
+
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  .animate-slide-left {
+    animation: slideInFromLeft 0.8s ease-out;
+  }
+
+  .animate-slide-right {
+    animation: slideInFromRight 0.8s ease-out;
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 0.6s ease-out;
+  }
+
+  .animate-bounce-in {
+    animation: bounceIn 0.8s ease-out;
+  }
+
+  .scroll-smooth {
+    scroll-behavior: smooth;
+  }
+
+  .parallax {
+    transform: translateZ(0);
+    will-change: transform;
+  }
+
+  .hover-lift {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
+    will-change: transform;
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-5px) translateZ(0);
+    box-shadow: 0 10px 25px rgba(34, 60, 80, 0.2);
+  }
+
+  .responsive-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 1rem;
+  }
+
+  @media (min-width: 640px) {
+    .responsive-container {
+      padding: 0 1.5rem;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .responsive-container {
+      padding: 0 2rem;
+    }
+  }
+
+  .spline-container {
+    position: relative;
+    overflow: hidden;
+    border-radius: 1rem;
+  }
+
+  .spline-cached {
+    pointer-events: none;
+    user-select: none;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes slideInFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Spline viewer styles */
+spline-viewer {
+  width: 100%;
+  height: 100%;
+  display: block;
+  border-radius: 12px;
+  overflow: hidden;
+  background: transparent;
+}
+
+/* Hide Spline branding */
+spline-viewer .spline-watermark,
+spline-viewer .spline-logo,
+spline-viewer [data-spline-logo],
+spline-viewer .logo,
+spline-viewer [class*="logo"],
+spline-viewer [class*="watermark"],
+spline-viewer [class*="brand"],
+spline-viewer a[href*="spline.design"],
+spline-viewer a[href*="utm_campaign=spline-logo"],
+spline-viewer a[href*="utm_source=spline-viewer"],
+spline-viewer a[href*="utm_source=public-url"],
+spline-viewer #logo {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* Additional hiding using shadow DOM penetration */
+spline-viewer::part(logo),
+spline-viewer::part(watermark) {
+  display: none !important;
+}
+
+/* Ensure Spline containers are properly sized */
+.spline-container {
+  width: 100%;
+  height: 100%;
+  min-height: 200px;
+  position: relative;
+}
+
+/* Navbar specific spline styling */
+nav spline-viewer {
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+/* Performance optimizations */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-display: swap;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Reduce layout shifts */
+img {
+  height: auto;
+  max-width: 100%;
+}
+
+/* Optimize animations */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* GPU acceleration for animations */
+.animate-fade-in,
+.animate-slide-left,
+.animate-slide-right,
+.animate-scale-in,
+.animate-bounce-in {
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
+/* Hide any bottom-right positioned elements (common logo position) */
+spline-viewer > *:last-child[style*="position: absolute"][style*="bottom"][style*="right"] {
+  display: none !important;
+}
