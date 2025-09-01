@@ -673,11 +673,11 @@ export default function Techfest() {
                         transition={{ duration: 0.6, delay: 0.4 }}
                       >
                         {event.spline_right_url ? (
-                          <div className="aspect-square spline-container rounded-xl overflow-hidden bg-transparent">
+                          <div className="aspect-square spline-container rounded-xl overflow-hidden bg-transparent relative">
                             <DynamicSplineComponent
                               eventName={event.name}
                               fallbackUrl={event.spline_right_url}
-                              className="w-full h-full"
+                              className="absolute inset-0 w-full h-full"
                             />
                           </div>
                         ) : (
