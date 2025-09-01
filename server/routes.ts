@@ -652,6 +652,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = insertTechnofestSchema.parse(req.body);
       const event = await storage.createTechnofestEvent(validatedData);
+      
+      // Create Spline component if URL is provided
+      if (event.spline_right_url) {
+        try {
+          const { componentGenerator } = await import("./component-generator");
+          await componentGenerator.createSplineComponent(event.name, event.spline_right_url);
+          console.log(`Created Spline component for event: ${event.name}`);
+        } catch (componentError) {
+          console.warn(`Failed to create component for event ${event.name}:`, componentError);
+        }
+      }
+      
       res.json(event);
     } catch (error: any) {
       console.error("TechFest event creation error:", error);
@@ -664,10 +676,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.patch("/api/admin/technofest/:id", requireAuth, async (req, res) => {
     try {
+      const oldEvent = await storage.getTechnofestEvent(req.params.id);
       const event = await storage.updateTechnofestEvent(req.params.id, req.body);
       if (!event) {
         return res.status(404).json({ message: "TechFest event not found" });
       }
+      
+      // Handle Spline component updates
+      if (event.spline_right_url !== oldEvent?.spline_right_url) {
+        try {
+          const { componentGenerator } = await import("./component-generator");
+          
+          // Delete old component if name changed or no URL
+          if (oldEvent && (event.name !== oldEvent.name || !event.spline_right_url)) {
+            await componentGenerator.deleteSplineComponent(oldEvent.name);
+          }
+          
+          // Create new component if URL provided
+          if (event.spline_right_url) {
+            await componentGenerator.createSplineComponent(event.name, event.spline_right_url);
+            console.log(`Updated Spline component for event: ${event.name}`);
+          }
+        } catch (componentError) {
+          console.warn(`Failed to update component for event ${event.name}:`, componentError);
+        }
+      }
+      
       res.json(event);
     } catch (error) {
       console.error("TechFest event update error:", error);
@@ -677,10 +711,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/admin/technofest/:id", requireAuth, async (req, res) => {
     try {
+      // Get event details before deletion for component cleanup
+      const event = await storage.getTechnofestEvent(req.params.id);
       const deleted = await storage.deleteTechnofestEvent(req.params.id);
       if (!deleted) {
         return res.status(404).json({ message: "TechFest event not found" });
       }
+      
+      // Delete associated Spline component
+      if (event) {
+        try {
+          const { componentGenerator } = await import("./component-generator");
+          await componentGenerator.deleteSplineComponent(event.name);
+          console.log(`Deleted Spline component for event: ${event.name}`);
+        } catch (componentError) {
+          console.warn(`Failed to delete component for event ${event.name}:`, componentError);
+        }
+      }
+      
       res.json({ message: "TechFest event deleted successfully" });
     } catch (error) {
       console.error("TechFest event deletion error:", error);
