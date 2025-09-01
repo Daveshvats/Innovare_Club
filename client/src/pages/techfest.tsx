@@ -550,46 +550,55 @@ export default function Techfest() {
           <div className="relative">
             {/* Background remains the pink gradient TechFest background only */}
 
-            {/* Back Button */}
+            {/* Sticky Back Button */}
             {selectedCategory && filteredEvents.length > 0 && (
-              <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-1 pb-1">
-                <button
-                  onClick={handleBackToCategories}
-                  className="inline-flex items-center gap-2 px-4 py-2 text-tech-blue hover:text-tech-dark transition-colors font-tech font-medium"
-                  data-testid="button-back-to-categories-top"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                  </svg>
-                  Back to Categories
-                </button>
+              <div className="sticky top-16 z-50 bg-white/90 backdrop-blur-md border-b border-white/20 shadow-lg">
+                <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-3">
+                  <button
+                    onClick={handleBackToCategories}
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-tech-blue/10 hover:bg-tech-blue/20 text-tech-blue hover:text-tech-dark transition-all duration-300 font-tech font-medium rounded-lg backdrop-blur-sm border border-tech-blue/20 hover:border-tech-blue/40"
+                    data-testid="button-back-to-categories-top"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                    Back to Categories
+                  </button>
+                </div>
               </div>
             )}
 
-            {/* Event Pages */}
-            <div className="snap-y snap-mandatory">
+            {/* Event Pages with Snap Scrolling */}
+            <div className="h-screen overflow-y-scroll snap-y snap-mandatory scroll-smooth">
               {filteredEvents.map((event, idx) => (
                 <motion.div
                   key={event.id}
                   data-event-index={idx}
-                  className="min-h-screen snap-start bg-transparent"
-                  initial={{ opacity: 0, y: 50 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-50px" }}
-                  transition={{ duration: 0.6, delay: 0.2 }}
+                  className="h-screen snap-start bg-transparent flex items-center"
+                  initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                  whileInView={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: -20 }}
+                  viewport={{ once: false, amount: 0.3 }}
+                  transition={{ 
+                    duration: 0.8, 
+                    ease: [0.25, 0.46, 0.45, 0.94],
+                    opacity: { duration: 0.6 },
+                    scale: { duration: 0.8 },
+                    y: { duration: 0.8 }
+                  }}
                 >
-                  <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8 min-h-screen flex items-center relative z-10">
+                  <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8 w-full relative z-10">
                     <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 lg:gap-6 items-center w-full">
                       {/* Event Content */}
                       <motion.div 
                         className="space-y-3 md:space-y-4 order-2 lg:order-1 lg:col-span-3"
-                        initial={{ opacity: 0, x: -50 }}
+                        initial={{ opacity: 0, x: -30 }}
                         whileInView={{ opacity: 1, x: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.6, delay: 0.3 }}
-                        style={{
-                          transform: `translateY(${scrollY * 0.08 * (idx + 1)}px)`,
-                          transition: 'transform 0.1s ease-out'
+                        viewport={{ once: false, amount: 0.3 }}
+                        transition={{ 
+                          duration: 0.7, 
+                          delay: 0.2,
+                          ease: [0.25, 0.46, 0.45, 0.94]
                         }}
                       >
                         <div className="text-xs md:text-sm font-tech font-bold uppercase tracking-widest text-tech-blue text-center lg:text-left">
@@ -630,13 +639,14 @@ export default function Techfest() {
                       {/* Event Visual */}
                       <motion.div 
                         className="bg-transparent border-0 p-2 md:p-3 rounded-2xl order-1 lg:order-2 lg:col-span-2 relative z-20 flex items-center justify-center"
-                        initial={{ opacity: 0, x: 50 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.6, delay: 0.4 }}
-                        style={{
-                          transform: `translateY(${scrollY * 0.12 * (idx + 1)}px)`,
-                          transition: 'transform 0.1s ease-out'
+                        initial={{ opacity: 0, x: 30, scale: 0.9 }}
+                        whileInView={{ opacity: 1, x: 0, scale: 1 }}
+                        viewport={{ once: false, amount: 0.3 }}
+                        transition={{ 
+                          duration: 0.8, 
+                          delay: 0.4,
+                          ease: [0.25, 0.46, 0.45, 0.94],
+                          scale: { duration: 1.0 }
                         }}
                       >
                         {event.spline_right_url ? (
