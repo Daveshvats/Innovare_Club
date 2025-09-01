@@ -36,16 +36,16 @@ type EventItem = {
   name: string;
   number?: number;
   category: string;
-  shortDescription: string;
+  short_description: string;
   description: string;
   rules: string[];
-  youtubeUrl?: string;
-  teamMin: number;
-  teamMax: number;
-  splineRightUrl?: string;
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
+  youtube_url?: string;
+  team_min: number;
+  team_max: number;
+  spline_right_url?: string;
+  is_active: boolean;
+  created_at: Date;
+  updated_at: Date;
 };
 
 type RegistrationPayload = {

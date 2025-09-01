@@ -122,21 +122,21 @@ export const courseLibrary = pgTable("course_library", {
 });
 
 export const technofest = pgTable("technofest", {
-id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-slug: text("slug").unique(),
-name: text("name").notNull(),
-number: integer("number"),
-category: text("category").notNull(),
-shortDescription: text("short_description").notNull(),
-description: text("description").notNull(),
-rules: jsonb("rules").notNull().default(sql`'[]'::jsonb`),
-youtubeUrl: text("youtube_url"),
-teamMin: smallint("team_min").notNull(),
-teamMax: smallint("team_max").notNull(),
-splineRightUrl: text("spline_right_url"),
-isActive: boolean("is_active").notNull().default(true),
-createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  slug: text("slug").unique(),
+  name: text("name").notNull(),
+  number: integer("number"),
+  category: text("category").notNull(),
+  short_description: text("short_description").notNull(),
+  description: text("description").notNull(),
+  rules: jsonb("rules").notNull().default(sql`'[]'::jsonb`),
+  youtube_url: text("youtube_url"),
+  team_min: smallint("team_min").notNull(),
+  team_max: smallint("team_max").notNull(),
+  spline_right_url: text("spline_right_url"),
+  is_active: boolean("is_active").notNull().default(true),
+  created_at: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updated_at: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
 export const techfestRegistrations = pgTable("registrations", {

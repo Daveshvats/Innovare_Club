@@ -43,7 +43,10 @@ import {
   pollResponses,
   announcements,
   announcementReplies,
-  courseLibrary
+  courseLibrary,
+  siteSettings,
+  type SiteSettings,
+  type InsertSiteSettings
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { eq, and, desc } from "drizzle-orm";
