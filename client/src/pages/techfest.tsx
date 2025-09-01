@@ -5,54 +5,15 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { HomeRobot } from '@/components/home-robot';
 import { useScrollAnimation } from '@/hooks/use-scroll-animation';
 
-// Event spline component for individual events
+// Event spline component for individual events (using iframe for clean display)
 const EventSpline: React.FC<{ splineUrl?: string; className?: string }> = ({ splineUrl, className = "" }) => {
-  const canvasRef = React.useRef<HTMLCanvasElement>(null);
-  const appRef = React.useRef<any>(null);
-
-  React.useEffect(() => {
-    if (!splineUrl) return;
-    
-    let Application: any;
-    let app: any;
-
-    async function init() {
-      if (!canvasRef.current) return;
-
-      try {
-        // @ts-ignore - Dynamic import from CDN
-        const module = await import('https://unpkg.com/@splinetool/runtime@1.10.51/build/runtime.js');
-        Application = module.Application;
-
-        app = new Application(canvasRef.current);
-        await app.load(splineUrl);
-        appRef.current = app;
-      } catch (error) {
-        console.error('Failed to load event Spline:', error);
-      }
-    }
-
-    init();
-
-    return () => {
-      if (appRef.current) {
-        try {
-          appRef.current.destroy();
-        } catch (error) {
-          console.error('Error destroying Spline app:', error);
-        }
-        appRef.current = null;
-      }
-    };
-  }, [splineUrl]);
-
   if (!splineUrl) return null;
 
   return (
     <div className={`absolute inset-0 ${className}`}>
-      <canvas 
-        ref={canvasRef} 
-        className="w-full h-full object-cover"
+      <iframe 
+        src={splineUrl}
+        className="w-full h-full object-cover border-0"
         style={{ 
           position: 'absolute',
           top: 0,
@@ -60,8 +21,10 @@ const EventSpline: React.FC<{ splineUrl?: string; className?: string }> = ({ spl
           width: '100%',
           height: '100%',
           zIndex: -1,
-          pointerEvents: 'none'
+          pointerEvents: 'none',
+          border: 'none'
         }}
+        title="3D Background"
       />
     </div>
   );
@@ -102,21 +65,21 @@ type Category = {
 
 const categories: Category[] = [
   {
-    id: 'cultural',
+    id: 'Cultural',
     name: 'Cultural Events',
     description: 'Art, music, dance and creative competitions',
     color: 'purple',
     icon: '🎭'
   },
   {
-    id: 'sports', 
+    id: 'Sports', 
     name: 'Sports Events',
     description: 'Athletic competitions and physical challenges',
     color: 'green',
     icon: '⚽'
   },
   {
-    id: 'technical',
+    id: 'Technical',
     name: 'Technical Events', 
     description: 'Programming, robotics and technical challenges',
     color: 'blue',
@@ -157,14 +120,14 @@ export default function Techfest() {
         console.error('Failed to load technofest events:', e);
         setError(e instanceof Error ? e.message : 'Failed to load events');
         
-        // Sample events as fallback
+        // Sample events as fallback (using proper database categories)
         const sampleEvents: EventItem[] = [
           {
             id: '1',
             slug: 'art-showcase',
             name: 'Digital Art Showcase',
             number: 1,
-            category: 'cultural',
+            category: 'Cultural',
             shortDescription: 'Express your creativity through digital art and design',
             description: 'Create stunning digital artwork using modern tools and showcase your artistic vision.',
             rules: ['Individual participation', 'Original artwork only', 'Submit in high resolution'],
@@ -180,7 +143,7 @@ export default function Techfest() {
             slug: 'coding-contest',
             name: 'Algorithm Master',
             number: 2,
-            category: 'technical',
+            category: 'Technical',
             shortDescription: 'Solve complex algorithmic challenges and optimize your code',
             description: 'Test your programming skills with challenging algorithmic problems.',
             rules: ['Individual or team of 2', 'Any programming language', '3 hour time limit'],
@@ -196,7 +159,7 @@ export default function Techfest() {
             slug: 'esports-tournament',
             name: 'E-Sports Championship',
             number: 3,
-            category: 'sports',
+            category: 'Sports',
             shortDescription: 'Compete in the ultimate gaming tournament',
             description: 'Battle it out in popular games and showcase your gaming skills.',
             rules: ['Team of 5 players', 'Bring your own devices', 'Fair play required'],
@@ -215,14 +178,11 @@ export default function Techfest() {
     })();
   }, []);
 
-  // Filter events based on selected category
+  // Filter events based on selected category (using database category field)
   useEffect(() => {
     if (selectedCategory) {
       const filtered = events.filter(event => 
-        event.category.toLowerCase().includes(selectedCategory) ||
-        (selectedCategory === 'cultural' && (event.category.toLowerCase().includes('art') || event.category.toLowerCase().includes('music') || event.category.toLowerCase().includes('dance') || event.category.toLowerCase().includes('creative'))) ||
-        (selectedCategory === 'sports' && (event.category.toLowerCase().includes('sport') || event.category.toLowerCase().includes('athletic') || event.category.toLowerCase().includes('physical') || event.category.toLowerCase().includes('fitness') || event.category.toLowerCase().includes('game'))) ||
-        (selectedCategory === 'technical' && (event.category.toLowerCase().includes('technical') || event.category.toLowerCase().includes('programming') || event.category.toLowerCase().includes('coding') || event.category.toLowerCase().includes('development') || event.category.toLowerCase().includes('hackathon') || event.category.toLowerCase().includes('robotics') || event.category.toLowerCase().includes('ai') || event.category.toLowerCase().includes('tech')))
+        event.category.toLowerCase() === selectedCategory.toLowerCase()
       );
       setFilteredEvents(filtered);
     } else {
@@ -425,7 +385,7 @@ export default function Techfest() {
             {filteredEvents[currentEventIndex]?.splineRightUrl && (
               <EventSpline
                 splineUrl={filteredEvents[currentEventIndex].splineRightUrl}
-                className="opacity-20 fixed inset-0"
+                className="opacity-30 fixed inset-0"
               />
             )}
 
@@ -523,7 +483,7 @@ export default function Techfest() {
                 No {categories.find(c => c.id === selectedCategory)?.name} Available
               </h3>
               <p className="text-tech-grey mb-6">
-                Check back later for exciting {selectedCategory} competitions!
+                Check back later for exciting {selectedCategory.toLowerCase()} competitions!
               </p>
               <button
                 onClick={handleBackToCategories}

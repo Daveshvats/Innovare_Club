@@ -11,7 +11,8 @@ import {
   BarChart3,
   MessageSquare,
   Vote,
-  BookOpen
+  BookOpen,
+  Trophy
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { adminLogout } from "@/lib/api";
@@ -35,6 +36,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const navigation = [
     { name: 'Dashboard', href: '/admin/dashboard', icon: BarChart3 },
     { name: 'Events', href: '/admin/events', icon: Calendar },
+    { name: 'TechFest', href: '/admin/technofest', icon: Trophy },
     { name: 'Registrations', href: '/admin/registrations', icon: UserCheck },
     { name: 'Team', href: '/admin/team', icon: Users },
     { name: 'Polls', href: '/admin/polls', icon: Vote },

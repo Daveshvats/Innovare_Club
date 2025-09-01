@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertEventSchema, insertTeamMemberSchema, insertGalleryImageSchema, insertRegistrationSchema, insertAboutContentSchema, insertPollSchema, insertAnnouncementSchema, insertCourseLibrarySchema, insertPollResponseSchema, insertAnnouncementReplySchema } from "@shared/schema";
+import { insertEventSchema, insertTeamMemberSchema, insertGalleryImageSchema, insertRegistrationSchema, insertAboutContentSchema, insertPollSchema, insertAnnouncementSchema, insertCourseLibrarySchema, insertPollResponseSchema, insertAnnouncementReplySchema, insertTechnofestSchema, insertTechfestRegistrationSchema, insertRegistrationMemberSchema } from "@shared/schema";
 
 // Simple session storage for demo (use proper sessions in production)
 const adminSessions = new Map<string, { id: string; username: string; email: string }>();
@@ -583,6 +583,108 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: "Invalid course data", 
         details: error.errors || error.message 
       });
+    }
+  });
+
+  // TechFest APIs
+  app.get("/api/technofest", async (req, res) => {
+    try {
+      const events = await storage.getTechnofestEvents();
+      res.json(events);
+    } catch (error) {
+      console.error("TechFest events fetch error:", error);
+      res.status(500).json({ message: "Failed to fetch technofest events" });
+    }
+  });
+
+  app.get("/api/technofest/:id", async (req, res) => {
+    try {
+      const event = await storage.getTechnofestEvent(req.params.id);
+      if (!event) {
+        return res.status(404).json({ message: "TechFest event not found" });
+      }
+      res.json(event);
+    } catch (error) {
+      console.error("TechFest event fetch error:", error);
+      res.status(500).json({ message: "Failed to fetch technofest event" });
+    }
+  });
+
+  app.post("/api/technofest/:id/register", async (req, res) => {
+    try {
+      const { teamName, members, contactEmail } = req.body;
+      
+      if (!teamName || !contactEmail || !Array.isArray(members)) {
+        return res.status(400).json({ message: "Invalid registration data" });
+      }
+
+      // Create registration
+      const registrationData = {
+        technofestId: req.params.id,
+        teamName: teamName.trim(),
+        contactEmail: contactEmail.trim(),
+      };
+
+      const registration = await storage.createTechfestRegistration(registrationData);
+      
+      // Create team members
+      const memberPromises = members
+        .filter(member => member.name && member.name.trim())
+        .map(member => {
+          return storage.createRegistrationMember({
+            registrationId: registration.id,
+            name: member.name.trim(),
+            email: member.email ? member.email.trim() : undefined,
+          });
+        });
+      
+      await Promise.all(memberPromises);
+      
+      res.json({ message: "Registration successful", registration });
+    } catch (error) {
+      console.error("TechFest registration error:", error);
+      res.status(500).json({ message: "Failed to register for event" });
+    }
+  });
+
+  // Admin TechFest Management
+  app.post("/api/admin/technofest", requireAuth, async (req, res) => {
+    try {
+      const validatedData = insertTechnofestSchema.parse(req.body);
+      const event = await storage.createTechnofestEvent(validatedData);
+      res.json(event);
+    } catch (error: any) {
+      console.error("TechFest event creation error:", error);
+      res.status(400).json({ 
+        message: "Invalid technofest event data", 
+        details: error.errors || error.message 
+      });
+    }
+  });
+
+  app.patch("/api/admin/technofest/:id", requireAuth, async (req, res) => {
+    try {
+      const event = await storage.updateTechnofestEvent(req.params.id, req.body);
+      if (!event) {
+        return res.status(404).json({ message: "TechFest event not found" });
+      }
+      res.json(event);
+    } catch (error) {
+      console.error("TechFest event update error:", error);
+      res.status(500).json({ message: "Failed to update technofest event" });
+    }
+  });
+
+  app.delete("/api/admin/technofest/:id", requireAuth, async (req, res) => {
+    try {
+      const deleted = await storage.deleteTechnofestEvent(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ message: "TechFest event not found" });
+      }
+      res.json({ message: "TechFest event deleted successfully" });
+    } catch (error) {
+      console.error("TechFest event deletion error:", error);
+      res.status(500).json({ message: "Failed to delete technofest event" });
     }
   });
 

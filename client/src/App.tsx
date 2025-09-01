@@ -25,6 +25,7 @@ import AdminPolls from "@/pages/admin/polls";
 import AdminAnnouncements from "@/pages/admin/announcements";
 import AdminCourses from "@/pages/admin/courses";
 import AdminUsers from "@/pages/admin/users";
+import AdminTechnofest from "@/pages/admin/technofest";
 import UserLogin from "@/pages/user/login";
 import { useEffect, useState } from "react";
 import { SplineLoader } from "./components/loader-spline";
@@ -49,6 +50,7 @@ function Router() {
               <Switch>
                 <Route path="/admin/dashboard" component={AdminDashboard} />
                 <Route path="/admin/events" component={AdminEvents} />
+                <Route path="/admin/technofest" component={AdminTechnofest} />
                 <Route path="/admin/team" component={AdminTeam} />
                 <Route path="/admin/gallery" component={AdminGallery} />
                 <Route path="/admin/registrations" component={AdminRegistrations} />
