@@ -11,6 +11,9 @@ import Home from "@/pages/home";
 import About from "@/pages/about";
 import Events from "@/pages/events";
 import Techfest from "./pages/techfest";
+import TechfestCultural from "./pages/techfest-cultural";
+import TechfestSports from "./pages/techfest-sports";
+import TechfestTechnical from "./pages/techfest-technical";
 import Gallery from "@/pages/gallery";
 import NotFound from "@/pages/not-found";
 import AdminLogin from "@/pages/admin/login";
@@ -77,6 +80,9 @@ function Router() {
                 <Route path="/" component={Home} />
                 <Route path="/about" component={About} />
                 <Route path="/events" component={Events} />
+                <Route path="/techfest/cultural" component={TechfestCultural} />
+                <Route path="/techfest/sports" component={TechfestSports} />
+                <Route path="/techfest/technical" component={TechfestTechnical} />
                 <Route path="/techfest" component={Techfest} />
                 <Route path="/gallery" component={Gallery} />
                 <Route path="/community" component={Community} />
