@@ -50,7 +50,8 @@ export const SuitPursuit = memo(function SuitPursuit({ className = "" }: SuitPur
 
   return (
     <div
-      className={`relative overflow-hidden w-full h-full ${className}`}
+      className={`relative overflow-hidden w-full h-full rounded-xl ${className}`}
+      style={{ minHeight: '200px', maxHeight: '100%' }}
     >
       <canvas
         ref={canvasRef}
@@ -58,7 +59,7 @@ export const SuitPursuit = memo(function SuitPursuit({ className = "" }: SuitPur
         style={{
           background: 'transparent',
           display: 'block',
-          objectFit: 'contain',
+          borderRadius: '0.75rem',
         }}
       />
     </div>

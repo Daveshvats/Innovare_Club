@@ -24,8 +24,11 @@ const DynamicSplineComponent: React.FC<{
         // Try to dynamically import the generated component
         const componentModule = await import(`@/components/generated/${componentName}.tsx`);
         
-        // The component is exported with capitalized first letter and no spaces
-        const exportName = eventName.replace(/[^a-zA-Z0-9]/g, '').replace(/^./, str => str.toUpperCase());
+        // The component is exported with PascalCase (each word capitalized, no spaces)
+        const exportName = eventName
+          .split(/[^a-zA-Z0-9]+/)
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+          .join('');
         const ComponentClass = componentModule[exportName];
         
         if (ComponentClass) {
@@ -56,21 +59,18 @@ const DynamicSplineComponent: React.FC<{
   // Fallback to iframe if component not found
   if (fallbackUrl) {
     return (
-      <div className={`absolute inset-0 ${className}`}>
+      <div className={`w-full h-full ${className}`}>
         <iframe 
           src={fallbackUrl}
-          className="w-full h-full object-cover border-0"
+          className="w-full h-full border-0 rounded-xl"
           style={{ 
-            position: 'absolute',
-            top: 0,
-            left: 0,
             width: '100%',
             height: '100%',
-            zIndex: -1,
-            pointerEvents: 'none',
-            border: 'none'
+            border: 'none',
+            borderRadius: '0.75rem'
           }}
           title="3D Background"
+          loading="lazy"
         />
       </div>
     );
@@ -141,49 +141,7 @@ const TechFestBackground: React.FC<{ className?: string }> = ({ className = "" }
   );
 };
 
-// Event spline component for individual events (uses generated components)
-const EventSpline: React.FC<{ 
-  eventName?: string; 
-  splineUrl?: string; 
-  className?: string 
-}> = ({ eventName, splineUrl, className = "" }) => {
-  if (!eventName && !splineUrl) return null;
-
-  if (eventName) {
-    return (
-      <DynamicSplineComponent 
-        eventName={eventName}
-        className={className}
-        fallbackUrl={splineUrl}
-      />
-    );
-  }
-
-  // Fallback to iframe for events without names
-  if (splineUrl) {
-    return (
-      <div className={`absolute inset-0 ${className}`}>
-        <iframe 
-          src={splineUrl}
-          className="w-full h-full object-cover border-0"
-          style={{ 
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            zIndex: -1,
-            pointerEvents: 'none',
-            border: 'none'
-          }}
-          title="3D Background"
-        />
-      </div>
-    );
-  }
-
-  return null;
-};
+// Event spline component removed - using DynamicSplineComponent directly
 
 type EventItem = {
   id: string;
@@ -584,11 +542,13 @@ export default function Techfest() {
           <div className="relative">
             {/* Current Event Background Spline */}
             {filteredEvents[currentEventIndex]?.spline_right_url && (
-              <EventSpline
-                eventName={filteredEvents[currentEventIndex].name}
-                splineUrl={filteredEvents[currentEventIndex].spline_right_url}
-                className="opacity-30 fixed inset-0"
-              />
+              <div className="fixed inset-0 opacity-20 z-0 pointer-events-none">
+                <DynamicSplineComponent
+                  eventName={filteredEvents[currentEventIndex].name}
+                  fallbackUrl={filteredEvents[currentEventIndex].spline_right_url}
+                  className="w-full h-full"
+                />
+              </div>
             )}
 
             {/* Back Button */}
@@ -619,7 +579,7 @@ export default function Techfest() {
                   viewport={{ once: true, margin: "-50px" }}
                   transition={{ duration: 0.6, delay: 0.2 }}
                 >
-                  <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-2 md:py-4 min-h-screen flex items-center">
+                  <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8 min-h-screen flex items-center relative z-10">
                     <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 lg:gap-6 items-center w-full">
                       {/* Event Content */}
                       <motion.div 
@@ -666,7 +626,7 @@ export default function Techfest() {
 
                       {/* Event Visual */}
                       <motion.div 
-                        className="bg-transparent border-0 p-2 md:p-3 rounded-2xl order-1 lg:order-2 lg:col-span-2"
+                        className="bg-transparent border-0 p-2 md:p-3 rounded-2xl order-1 lg:order-2 lg:col-span-2 relative z-20"
                         initial={{ opacity: 0, x: 50 }}
                         whileInView={{ opacity: 1, x: 0 }}
                         viewport={{ once: true }}
@@ -677,7 +637,7 @@ export default function Techfest() {
                             <DynamicSplineComponent
                               eventName={event.name}
                               fallbackUrl={event.spline_right_url}
-                              className="absolute inset-0 w-full h-full"
+                              className="w-full h-full"
                             />
                           </div>
                         ) : (
