@@ -587,11 +587,11 @@ export default function Techfest() {
                     y: { duration: 0.8 }
                   }}
                 >
-                  <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8 w-full relative z-10">
-                    <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 lg:gap-6 items-center w-full">
+                  <div className="flex items-center justify-center w-full h-full relative z-10">
+                    <div className="flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-12 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                       {/* Event Content */}
                       <motion.div 
-                        className="space-y-3 md:space-y-4 order-2 lg:order-1 lg:col-span-3"
+                        className="flex-1 space-y-4 md:space-y-6 text-center lg:text-left lg:max-w-md"
                         initial={{ opacity: 0, x: -30 }}
                         whileInView={{ opacity: 1, x: 0 }}
                         viewport={{ once: false, amount: 0.3 }}
@@ -601,13 +601,13 @@ export default function Techfest() {
                           ease: [0.25, 0.46, 0.45, 0.94]
                         }}
                       >
-                        <div className="text-xs md:text-sm font-tech font-bold uppercase tracking-widest text-tech-blue text-center lg:text-left">
+                        <div className="text-xs md:text-sm font-tech font-bold uppercase tracking-widest text-tech-blue">
                           Event #{event.number || idx + 1}
                         </div>
-                        <h3 className="font-tech text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-tech-dark leading-tight text-center lg:text-left">
+                        <h3 className="font-tech text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-tech-dark leading-tight">
                           {event.name}
                         </h3>
-                        <p className="text-sm md:text-base lg:text-lg text-tech-grey leading-relaxed text-center lg:text-left">
+                        <p className="text-base md:text-lg lg:text-xl text-tech-grey leading-relaxed max-w-lg mx-auto lg:mx-0">
                           {event.short_description}
                         </p>
                         <div className="flex flex-wrap gap-2 justify-center lg:justify-start">
@@ -618,7 +618,7 @@ export default function Techfest() {
                             Team: {event.team_min}–{event.team_max}
                           </span>
                         </div>
-                        <div className="flex flex-col sm:flex-row gap-2 md:gap-3 pt-1 md:pt-2 justify-center lg:justify-start">
+                        <div className="flex flex-col sm:flex-row gap-3 md:gap-4 pt-2 justify-center lg:justify-start">
                           <button
                             onClick={() => setRegisterEvent(event)}
                             className="w-full sm:w-auto px-6 md:px-8 py-3 md:py-4 tech-gradient text-white font-tech font-semibold rounded-xl hover:shadow-lg transition-all transform hover:-translate-y-1 hover-lift text-sm md:text-base"
@@ -638,7 +638,7 @@ export default function Techfest() {
 
                       {/* Event Visual */}
                       <motion.div 
-                        className="bg-transparent border-0 p-2 md:p-3 rounded-2xl order-1 lg:order-2 lg:col-span-2 relative z-20 flex items-center justify-center"
+                        className="flex-shrink-0 relative z-20 flex items-center justify-center"
                         initial={{ opacity: 0, x: 30, scale: 0.9 }}
                         whileInView={{ opacity: 1, x: 0, scale: 1 }}
                         viewport={{ once: false, amount: 0.3 }}
@@ -650,7 +650,7 @@ export default function Techfest() {
                         }}
                       >
                         {event.spline_right_url ? (
-                          <div className="w-full h-80 sm:h-96 md:h-[28rem] lg:h-[32rem] xl:h-[36rem] spline-container rounded-xl overflow-hidden bg-transparent relative flex items-center justify-center">
+                          <div className="w-80 h-80 sm:w-96 sm:h-96 md:w-[28rem] md:h-[28rem] lg:w-[32rem] lg:h-[32rem] spline-container rounded-xl overflow-hidden bg-transparent relative flex items-center justify-center">
                             <DynamicSplineComponent
                               eventName={event.name}
                               fallbackUrl={event.spline_right_url}
@@ -658,7 +658,7 @@ export default function Techfest() {
                             />
                           </div>
                         ) : (
-                          <div className="w-full h-80 sm:h-96 md:h-[28rem] lg:h-[32rem] xl:h-[36rem] bg-gradient-to-br from-tech-blue/30 to-tech-green/30 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                          <div className="w-80 h-80 sm:w-96 sm:h-96 md:w-[28rem] md:h-[28rem] lg:w-[32rem] lg:h-[32rem] bg-gradient-to-br from-tech-blue/30 to-tech-green/30 rounded-xl flex items-center justify-center backdrop-blur-sm">
                             <div className="text-center text-white">
                               <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-tech font-bold mb-1 md:mb-2">#{event.number || idx + 1}</div>
                               <div className="text-xs sm:text-sm md:text-base lg:text-lg font-tech uppercase tracking-wider">{event.category}</div>
