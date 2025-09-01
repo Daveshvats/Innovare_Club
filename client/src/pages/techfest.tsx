@@ -540,16 +540,7 @@ export default function Techfest() {
 
           {/* Events Container */}
           <div className="relative">
-            {/* Current Event Background Spline */}
-            {filteredEvents[currentEventIndex]?.spline_right_url && (
-              <div className="fixed inset-0 opacity-20 z-0 pointer-events-none">
-                <DynamicSplineComponent
-                  eventName={filteredEvents[currentEventIndex].name}
-                  fallbackUrl={filteredEvents[currentEventIndex].spline_right_url}
-                  className="w-full h-full"
-                />
-              </div>
-            )}
+            {/* Background remains the pink gradient TechFest background only */}
 
             {/* Back Button */}
             {selectedCategory && filteredEvents.length > 0 && (
@@ -589,16 +580,16 @@ export default function Techfest() {
                         viewport={{ once: true }}
                         transition={{ duration: 0.6, delay: 0.3 }}
                       >
-                        <div className="text-xs md:text-sm font-tech font-bold uppercase tracking-widest text-tech-blue">
+                        <div className="text-xs md:text-sm font-tech font-bold uppercase tracking-widest text-tech-blue text-center lg:text-left">
                           Event #{event.number || idx + 1}
                         </div>
-                        <h3 className="font-tech text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-tech-dark leading-tight">
+                        <h3 className="font-tech text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-tech-dark leading-tight text-center lg:text-left">
                           {event.name}
                         </h3>
-                        <p className="text-sm md:text-base lg:text-lg text-tech-grey leading-relaxed">
+                        <p className="text-sm md:text-base lg:text-lg text-tech-grey leading-relaxed text-center lg:text-left">
                           {event.short_description}
                         </p>
-                        <div className="flex flex-wrap gap-2">
+                        <div className="flex flex-wrap gap-2 justify-center lg:justify-start">
                           <span className="px-2 md:px-3 py-1 bg-tech-blue text-white text-xs md:text-sm rounded-full font-mono">
                             {event.category}
                           </span>
@@ -606,7 +597,7 @@ export default function Techfest() {
                             Team: {event.team_min}–{event.team_max}
                           </span>
                         </div>
-                        <div className="flex flex-col sm:flex-row gap-2 md:gap-3 pt-1 md:pt-2">
+                        <div className="flex flex-col sm:flex-row gap-2 md:gap-3 pt-1 md:pt-2 justify-center lg:justify-start">
                           <button
                             onClick={() => setRegisterEvent(event)}
                             className="w-full sm:w-auto px-6 md:px-8 py-3 md:py-4 tech-gradient text-white font-tech font-semibold rounded-xl hover:shadow-lg transition-all transform hover:-translate-y-1 hover-lift text-sm md:text-base"
@@ -626,14 +617,14 @@ export default function Techfest() {
 
                       {/* Event Visual */}
                       <motion.div 
-                        className="bg-transparent border-0 p-2 md:p-3 rounded-2xl order-1 lg:order-2 lg:col-span-2 relative z-20"
+                        className="bg-transparent border-0 p-2 md:p-3 rounded-2xl order-1 lg:order-2 lg:col-span-2 relative z-20 flex items-center justify-center"
                         initial={{ opacity: 0, x: 50 }}
                         whileInView={{ opacity: 1, x: 0 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.6, delay: 0.4 }}
                       >
                         {event.spline_right_url ? (
-                          <div className="aspect-square spline-container rounded-xl overflow-hidden bg-transparent relative">
+                          <div className="aspect-square spline-container rounded-xl overflow-hidden bg-transparent relative flex items-center justify-center">
                             <DynamicSplineComponent
                               eventName={event.name}
                               fallbackUrl={event.spline_right_url}
