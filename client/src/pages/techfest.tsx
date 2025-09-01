@@ -81,10 +81,23 @@ const DynamicSplineComponent: React.FC<{
 
 const TechFestBackground: React.FC<{ className?: string }> = ({ className = "" }) => {
   return (
-    <div className={`absolute inset-0 bg-gradient-to-br from-tech-light/30 to-tech-blue/20 ${className}`}>
+    <div className={`absolute inset-0 bg-gradient-to-br from-purple-400 via-pink-500 to-blue-500 ${className}`}>
+      <div 
+        className="w-full h-full opacity-80"
+        style={{ 
+          background: 'radial-gradient(circle at 30% 40%, rgba(120, 119, 198, 0.8) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.8) 0%, transparent 50%), radial-gradient(circle at 40% 80%, rgba(120, 200, 255, 0.8) 0%, transparent 50%)',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          zIndex: -1,
+          pointerEvents: 'none'
+        }}
+      />
       <iframe 
         src="https://prod.spline.design/DC0L-NagpocfiwmY/scene.splinecode"
-        className="w-full h-full object-cover border-0"
+        className="w-full h-full object-cover border-0 opacity-60"
         style={{ 
           position: 'absolute',
           top: 0,
@@ -93,7 +106,8 @@ const TechFestBackground: React.FC<{ className?: string }> = ({ className = "" }
           height: '100%',
           zIndex: -1,
           pointerEvents: 'none',
-          border: 'none'
+          border: 'none',
+          mixBlendMode: 'multiply'
         }}
         title="TechFest 3D Background"
       />
@@ -523,7 +537,7 @@ export default function Techfest() {
 
             {/* Back Button */}
             {selectedCategory && filteredEvents.length > 0 && (
-              <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-4">
+              <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-2">
                 <button
                   onClick={handleBackToCategories}
                   className="inline-flex items-center gap-2 px-4 py-2 text-tech-blue hover:text-tech-dark transition-colors font-tech font-medium"
@@ -543,13 +557,13 @@ export default function Techfest() {
                 <motion.div
                   key={event.id}
                   data-event-index={idx}
-                  className="min-h-screen snap-start bg-gradient-to-br from-tech-light/50 via-background/50 to-gray-50/50 backdrop-blur-sm"
+                  className="min-h-screen snap-start bg-gradient-to-br from-purple-100/20 via-pink-50/20 to-blue-100/20 backdrop-blur-sm"
                   initial={{ opacity: 0, y: 50 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, margin: "-50px" }}
                   transition={{ duration: 0.6, delay: 0.2 }}
                 >
-                  <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20 min-h-screen flex items-center">
+                  <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8 min-h-screen flex items-center">
                     <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
                       {/* Event Content */}
                       <motion.div 
