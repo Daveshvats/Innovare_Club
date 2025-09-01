@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+// import * as Spline from '@splinetool/viewer';
 import { HomeRobot } from '@/components/home-robot';
 import { useScrollAnimation } from '@/hooks/use-scroll-animation';
 
@@ -76,6 +77,28 @@ const DynamicSplineComponent: React.FC<{
   }
 
   return null;
+};
+
+const TechFestBackground: React.FC<{ className?: string }> = ({ className = "" }) => {
+  return (
+    <div className={`absolute inset-0 bg-gradient-to-br from-tech-light/30 to-tech-blue/20 ${className}`}>
+      <iframe 
+        src="https://prod.spline.design/DC0L-NagpocfiwmY/scene.splinecode"
+        className="w-full h-full object-cover border-0"
+        style={{ 
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          zIndex: -1,
+          pointerEvents: 'none',
+          border: 'none'
+        }}
+        title="TechFest 3D Background"
+      />
+    </div>
+  );
 };
 
 // Event spline component for individual events (uses generated components)
@@ -288,8 +311,8 @@ export default function Techfest() {
 
     const observerOptions = {
       root: null,
-      rootMargin: '-40% 0px -40% 0px',
-      threshold: 0.6
+      rootMargin: '-10% 0px -10% 0px',
+      threshold: 0.8
     };
 
     const observerCallback = (entries: IntersectionObserverEntry[]) => {
@@ -406,9 +429,13 @@ export default function Techfest() {
       {/* Hero Section */}
       <section
         ref={heroRef}
-        className="min-h-screen bg-gradient-to-br from-tech-light via-background to-gray-50"
+        className="min-h-screen bg-gradient-to-br from-tech-light via-background to-gray-50 relative overflow-hidden"
         data-testid="techfest-hero-section"
       >
+        {/* Background Spline */}
+        <div className="absolute inset-0 z-0">
+          <TechFestBackground />
+        </div>
         <div className="responsive-container py-12 sm:py-20 lg:py-24">
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center">
             <div className="text-center lg:text-left order-2 lg:order-1 space-y-6 lg:space-y-8">
@@ -511,18 +538,18 @@ export default function Techfest() {
             )}
 
             {/* Event Pages */}
-            <div className="space-y-4 md:space-y-8">
+            <div className="snap-y snap-mandatory">
               {filteredEvents.map((event, idx) => (
                 <motion.div
                   key={event.id}
                   data-event-index={idx}
-                  className="min-h-[80vh] bg-gradient-to-br from-tech-light/50 via-background/50 to-gray-50/50 backdrop-blur-sm"
+                  className="min-h-screen snap-start bg-gradient-to-br from-tech-light/50 via-background/50 to-gray-50/50 backdrop-blur-sm"
                   initial={{ opacity: 0, y: 50 }}
                   whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-100px" }}
+                  viewport={{ once: true, margin: "-50px" }}
                   transition={{ duration: 0.6, delay: 0.2 }}
                 >
-                  <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+                  <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20 min-h-screen flex items-center">
                     <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
                       {/* Event Content */}
                       <motion.div 
@@ -569,7 +596,7 @@ export default function Techfest() {
 
                       {/* Event Visual */}
                       <motion.div 
-                        className="geometric-card p-4 md:p-6 lg:p-8 rounded-2xl order-1 lg:order-2"
+                        className="backdrop-blur-lg bg-white/10 border border-white/20 shadow-xl p-4 md:p-6 lg:p-8 rounded-2xl order-1 lg:order-2"
                         initial={{ opacity: 0, x: 50 }}
                         whileInView={{ opacity: 1, x: 0 }}
                         viewport={{ once: true }}
@@ -616,7 +643,7 @@ export default function Techfest() {
       {selectedCategory && filteredEvents.length === 0 && (
         <section className="py-20 bg-gradient-to-br from-tech-light via-background to-gray-50">
           <div className="responsive-container text-center">
-            <div className="geometric-card p-12 rounded-2xl max-w-2xl mx-auto">
+            <div className="backdrop-blur-lg bg-white/10 border border-white/20 shadow-xl p-12 rounded-2xl max-w-2xl mx-auto">
               <h3 className="font-tech text-2xl font-bold text-tech-dark mb-4">
                 No {categories.find(c => c.id === selectedCategory)?.name} Available
               </h3>
@@ -636,7 +663,7 @@ export default function Techfest() {
 
       {/* Category Selection Dialog */}
       <AnimatePresence>
-        {showCategoryDialog && (
+        {showCategoryDialog && !selectedCategory && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -665,7 +692,7 @@ export default function Techfest() {
                   <button
                     key={category.id}
                     onClick={() => handleCategorySelect(category.id)}
-                    className="geometric-card p-6 rounded-xl hover:shadow-lg transition-all hover-lift text-left group"
+                    className="backdrop-blur-lg bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/30 shadow-xl hover:shadow-2xl p-6 rounded-xl transition-all hover-lift text-left group"
                     data-testid={`category-${category.id}`}
                   >
                     <div className="text-4xl mb-4 group-hover:scale-110 transition-transform">
@@ -736,10 +763,10 @@ export default function Techfest() {
               ) : null}
 
               <div className="grid grid-cols-2 gap-4 mb-6 text-sm">
-                <div className="geometric-card p-3 rounded-lg">
+                <div className="backdrop-blur-lg bg-white/10 border border-white/20 shadow-lg p-3 rounded-lg">
                   <strong className="text-tech-blue">Category:</strong> {learnMoreEvent.category}
                 </div>
-                <div className="geometric-card p-3 rounded-lg">
+                <div className="backdrop-blur-lg bg-white/10 border border-white/20 shadow-lg p-3 rounded-lg">
                   <strong className="text-tech-blue">Team size:</strong> {learnMoreEvent.team_min}–{learnMoreEvent.team_max}
                 </div>
               </div>
@@ -759,7 +786,7 @@ export default function Techfest() {
           <Modal onClose={() => setRegisterEvent(null)}>
             <form
               onSubmit={submitRegistration}
-              className="w-full max-w-lg rounded-2xl bg-background p-8 shadow-2xl border border-border"
+              className="w-full max-w-lg rounded-2xl backdrop-blur-lg bg-white/10 border border-white/20 shadow-xl p-8"
             >
               <h2 className="mb-4 text-2xl font-tech font-bold text-tech-dark">{`Register: ${registerEvent.name}`}</h2>
               <div className="mb-4 text-sm text-tech-grey">
