@@ -1,0 +1,87 @@
+🔎 Issues Causing the Jump
+
+isLayoutStable toggle delay
+
+scrollSnapType: isLayoutStable && filteredEvents.length > 0 ? 'y mandatory' : 'none'
+
+
+→ Snap is disabled at first, then turned on after setTimeout(() => setIsLayoutStable(true), 600).
+That means the browser renders freely for 600ms (can scroll anywhere) → then suddenly forces snap, causing the "jump."
+
+Spline background resizing
+
+await app.load('https://prod.spline.design/DC0L-NagpocfiwmY/scene.splinecode');
+
+
+→ The canvas adjusts size dynamically after scene load, which changes layout height.
+Even though you position: fixed it, the rendering pipeline may cause a single frame where content "pushes" → triggers reflow → snap recalculation.
+
+Framer Motion animations in sections
+
+initial={{ opacity: 0, x: -30 }}
+whileInView={{ opacity: 1, x: 0 }}
+
+
+→ These animations run after layout is computed. If height changes (e.g. scaling), it affects snap positions.
+
+Mobile 100vh bug
+
+style={{ height: 'calc(100vh - 4rem)' }}
+
+
+→ On mobile Safari/Chrome, 100vh includes the browser’s hidden address bar initially, then shrinks → your snap position jumps.
+
+Fonts not preloaded
+The gradient text TECHFEST’25 uses a custom tech font → when it loads, text width/height changes → pushes layout.
+
+✅ Fixes for Stability
+
+Here’s what you can change:
+
+Apply snap immediately but lock layout until stable
+
+<div 
+  className="overflow-y-scroll scroll-smooth relative"
+  style={{
+    height: 'calc(100dvh - 4rem)', // ✅ use `100dvh` for mobile
+    scrollSnapType: filteredEvents.length > 0 ? 'y mandatory' : 'none',
+    scrollPaddingTop: '4rem' // offset navbar
+  }}
+>
+
+
+→ Use 100dvh instead of 100vh for mobile fix.
+→ Don’t delay snap activation — instead, preload data before rendering.
+
+Prevent Spline from resizing layout
+
+Keep the <canvas> absolutely fixed (position: fixed; inset: 0; z-index:-1;) — which you already have.
+
+Add width:100%; height:100% CSS directly on parent to guarantee stability.
+
+Don’t animate container heights
+
+Limit Framer Motion animations to opacity & transform, not scale/size.
+
+Avoid scale: 0.9 → 1 on large containers (whileInView) → instead animate only child elements.
+
+Font preloading
+In <head> (Next.js _document.tsx):
+
+<link rel="preload" href="/fonts/techfont.woff2" as="font" type="font/woff2" crossOrigin="anonymous">
+
+
+→ Prevents FOUT/FOIT jumps.
+
+Fallback height lock while loading
+
+Add a min-height lock until events & spline load:
+
+<div style={{ minHeight: '100dvh', overflow: 'hidden' }}>
+  {!isLayoutStable && <div className="fixed inset-0 bg-white z-50" />}
+</div>
+
+
+→ Keeps page frozen until layout is fully ready.
+
+👉 With these, your scroll snapping will feel immediate & stable (no initial "drift then snap").

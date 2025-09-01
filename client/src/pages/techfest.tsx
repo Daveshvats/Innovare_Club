@@ -290,8 +290,8 @@ export default function Techfest() {
         setEvents(sampleEvents);
       } finally {
         setLoading(false);
-        // Stabilize layout after content loads to prevent scroll snap issues
-        setTimeout(() => setIsLayoutStable(true), 600);
+        // Allow minimal time for DOM to stabilize fonts and layout
+        setTimeout(() => setIsLayoutStable(true), 100);
       }
     })();
   }, []);
@@ -465,14 +465,24 @@ export default function Techfest() {
   }
 
   return (
-    <div className="min-h-screen pt-16 scroll-smooth">
+    <div className="min-h-screen pt-16 scroll-smooth" style={{ minHeight: '100dvh' }}>
+      {/* Loading overlay to prevent layout shifts */}
+      {!isLayoutStable && (
+        <div className="fixed inset-0 bg-gradient-to-br from-tech-light via-background to-gray-50 z-50 flex items-center justify-center">
+          <div className="text-center">
+            <div className="text-2xl font-tech font-bold mb-4 text-tech-dark">Loading TechFest...</div>
+            <div className="animate-pulse text-tech-grey">Preparing layout...</div>
+          </div>
+        </div>
+      )}
+      
       {/* Hero Section */}
       <section
         ref={heroRef}
         className="min-h-screen relative overflow-hidden"
         style={{
-          minHeight: 'calc(100vh - 4rem)', // Account for navbar height
-          height: 'calc(100vh - 4rem)',
+          minHeight: 'calc(100dvh - 4rem)', // Use dvh for mobile Safari fix
+          height: 'calc(100dvh - 4rem)',
           background: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 25%, #a8edea 50%, #fed6e3 75%, #d299c2 100%)'
         }}
         data-testid="techfest-hero-section"
@@ -494,15 +504,15 @@ export default function Techfest() {
                 WebkitTextFillColor: 'transparent',
                 backgroundClip: 'text'
               }}
-              initial={{ opacity: 1, x: 0, y: 0 }}
-              animate={{ opacity: 1, x: 0, y: 0 }}
+              initial={{ opacity: 1 }}
+              animate={{ opacity: 1 }}
               transition={{ duration: 0.1 }}
             >
               TECH<br />FEST'25
             </motion.h1>
             <motion.div
-              initial={{ opacity: 1, x: 0, y: 0 }}
-              animate={{ opacity: 1, x: 0, y: 0 }}
+              initial={{ opacity: 1 }}
+              animate={{ opacity: 1 }}
               transition={{ duration: 0.1 }}
               className="mb-8"
             >
@@ -585,8 +595,9 @@ export default function Techfest() {
             <div 
               className="overflow-y-scroll scroll-smooth relative"
               style={{
-                height: 'calc(100vh - 4rem)',
-                scrollSnapType: isLayoutStable && filteredEvents.length > 0 ? 'y mandatory' : 'none'
+                height: 'calc(100dvh - 4rem)',
+                scrollSnapType: filteredEvents.length > 0 ? 'y mandatory' : 'none',
+                scrollPaddingTop: '4rem' // Offset for navbar
               }}
             >
               {filteredEvents.map((event, idx) => (
@@ -594,31 +605,21 @@ export default function Techfest() {
                   key={event.id}
                   data-event-index={idx}
                   className="h-screen snap-start bg-transparent flex items-center"
-                  initial={{ opacity: 1, scale: 1, y: 0 }}
-                  whileInView={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95, y: -20 }}
+                  initial={{ opacity: 1 }}
+                  whileInView={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
                   viewport={{ once: false, amount: 0.3 }}
-                  transition={{ 
-                    duration: 0.8, 
-                    ease: [0.25, 0.46, 0.45, 0.94],
-                    opacity: { duration: 0.6 },
-                    scale: { duration: 0.8 },
-                    y: { duration: 0.8 }
-                  }}
+                  transition={{ duration: 0.3 }}
                 >
                   <div className="flex items-center justify-center w-full h-full relative z-10 pt-16 sm:pt-8 md:pt-0">
                     <div className="flex flex-col lg:flex-row items-center justify-center gap-6 lg:gap-12 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                       {/* Event Content */}
                       <motion.div 
                         className="flex-1 space-y-3 md:space-y-4 text-center lg:text-left lg:max-w-md px-2 sm:px-0"
-                        initial={{ opacity: 0, x: -30 }}
-                        whileInView={{ opacity: 1, x: 0 }}
+                        initial={{ opacity: 0 }}
+                        whileInView={{ opacity: 1 }}
                         viewport={{ once: false, amount: 0.3 }}
-                        transition={{ 
-                          duration: 0.7, 
-                          delay: 0.2,
-                          ease: [0.25, 0.46, 0.45, 0.94]
-                        }}
+                        transition={{ duration: 0.3 }}
                       >
                         <div className="text-xs md:text-sm font-tech font-bold uppercase tracking-widest text-tech-blue">
                           Event #{event.number || idx + 1}
