@@ -550,21 +550,19 @@ export default function Techfest() {
           <div className="relative">
             {/* Background remains the pink gradient TechFest background only */}
 
-            {/* Sticky Back Button */}
+            {/* Compact Back Button */}
             {selectedCategory && filteredEvents.length > 0 && (
-              <div className="sticky top-16 z-50 bg-white/90 backdrop-blur-md border-b border-white/20 shadow-lg">
-                <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-3">
-                  <button
-                    onClick={handleBackToCategories}
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-tech-blue/10 hover:bg-tech-blue/20 text-tech-blue hover:text-tech-dark transition-all duration-300 font-tech font-medium rounded-lg backdrop-blur-sm border border-tech-blue/20 hover:border-tech-blue/40"
-                    data-testid="button-back-to-categories-top"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                    </svg>
-                    Back to Categories
-                  </button>
-                </div>
+              <div className="absolute top-4 left-4 z-50">
+                <button
+                  onClick={handleBackToCategories}
+                  className="inline-flex items-center gap-1 px-3 py-2 bg-black/10 hover:bg-black/20 text-tech-blue hover:text-tech-dark transition-all duration-300 font-tech font-medium text-sm rounded-md backdrop-blur-sm border border-white/10 hover:border-white/20"
+                  data-testid="button-back-to-categories-top"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                  Back to Categories
+                </button>
               </div>
             )}
 
