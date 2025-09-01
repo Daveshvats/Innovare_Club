@@ -290,8 +290,8 @@ export default function Techfest() {
         setEvents(sampleEvents);
       } finally {
         setLoading(false);
-        // Allow minimal time for DOM to stabilize fonts and layout
-        setTimeout(() => setIsLayoutStable(true), 100);
+        // Wait longer for all assets (fonts, spline, etc) to fully load and stabilize
+        setTimeout(() => setIsLayoutStable(true), 2000);
       }
     })();
   }, []);
@@ -470,8 +470,8 @@ export default function Techfest() {
       {!isLayoutStable && (
         <div className="fixed inset-0 bg-gradient-to-br from-tech-light via-background to-gray-50 z-50 flex items-center justify-center">
           <div className="text-center">
-            <div className="text-2xl font-tech font-bold mb-4 text-tech-dark">Loading TechFest...</div>
-            <div className="animate-pulse text-tech-grey">Preparing layout...</div>
+            <div className="text-2xl font-bold mb-4 text-tech-dark" style={{ fontFamily: 'Inter, sans-serif' }}>Loading TechFest...</div>
+            <div className="animate-pulse text-tech-grey">Stabilizing layout and loading assets...</div>
           </div>
         </div>
       )}
@@ -492,7 +492,10 @@ export default function Techfest() {
           <TechFestBackground />
         </div>
         <div className="w-full h-full flex items-center justify-center px-4 sm:px-6 lg:px-8">
-          <div className="text-center space-y-6 lg:space-y-8 w-full max-w-4xl mx-auto relative z-20">
+          <div className="text-center space-y-6 lg:space-y-8 w-full max-w-4xl mx-auto relative z-20" style={{
+            opacity: isLayoutStable ? 1 : 0,
+            transition: 'opacity 0.5s ease-in-out'
+          }}>
             <div className="text-sm font-tech font-bold uppercase tracking-widest text-orange-300/80 mb-4 text-center">
               VAISH SOCIETY OF EDUCATION PRESENTS
             </div>
@@ -596,7 +599,7 @@ export default function Techfest() {
               className="overflow-y-scroll scroll-smooth relative"
               style={{
                 height: 'calc(100dvh - 4rem)',
-                scrollSnapType: filteredEvents.length > 0 ? 'y mandatory' : 'none',
+                scrollSnapType: isLayoutStable && filteredEvents.length > 0 ? 'y mandatory' : 'none',
                 scrollPaddingTop: '4rem' // Offset for navbar
               }}
             >
