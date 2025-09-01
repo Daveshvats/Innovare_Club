@@ -193,14 +193,14 @@ export default function AdminTechnofest() {
       slug: event.slug || "",
       number: event.number || 1,
       category: event.category,
-      shortDescription: event.shortDescription,
+      shortDescription: event.short_description,
       description: event.description,
       rules: event.rules || [],
-      youtubeUrl: event.youtubeUrl || "",
-      teamMin: event.teamMin,
-      teamMax: event.teamMax,
-      splineRightUrl: event.splineRightUrl || "",
-      isActive: event.isActive,
+      youtubeUrl: event.youtube_url || "",
+      teamMin: event.team_min,
+      teamMax: event.team_max,
+      splineRightUrl: event.spline_right_url || "",
+      isActive: event.is_active,
     });
     setShowCreateDialog(true);
   };
@@ -226,12 +226,20 @@ export default function AdminTechnofest() {
       return;
     }
 
+    // Map form data to database field names (snake_case)
     const submitData = {
-      ...formData,
       name: formData.name.trim(),
-      shortDescription: formData.shortDescription.trim(),
-      description: formData.description.trim(),
       slug: formData.slug.trim() || formData.name.toLowerCase().replace(/\s+/g, '-'),
+      number: formData.number,
+      category: formData.category,
+      short_description: formData.shortDescription.trim(),
+      description: formData.description.trim(),
+      rules: formData.rules,
+      youtube_url: formData.youtubeUrl || null,
+      team_min: formData.teamMin,
+      team_max: formData.teamMax,
+      spline_right_url: formData.splineRightUrl || null,
+      is_active: formData.isActive,
     };
 
     if (editingEvent) {
