@@ -125,16 +125,16 @@ const TechFestBackground: React.FC<{ className?: string }> = ({ className = "" }
   }, []);
 
   return (
-    <div className={`fixed inset-0 w-full h-full overflow-hidden ${className}`} style={{ zIndex: -1 }}>
+    <div className={`fixed inset-0 w-full h-full -z-10 ${className}`}>
       <canvas
         ref={canvasRef}
-        className="w-full h-full block outline-none"
+        className="w-full h-full"
         style={{
           background: 'transparent',
-          display: 'block',
           position: 'absolute',
-          top: 0,
-          left: 0,
+          inset: 0,
+          width: '100%',
+          height: '100%',
           pointerEvents: 'none'
         }}
       />
@@ -290,8 +290,8 @@ export default function Techfest() {
         setEvents(sampleEvents);
       } finally {
         setLoading(false);
-        // Wait longer for all assets (fonts, spline, etc) to fully load and stabilize
-        setTimeout(() => setIsLayoutStable(true), 2000);
+        // Allow minimal time for DOM stabilization
+        setIsLayoutStable(true);
       }
     })();
   }, []);
@@ -465,23 +465,12 @@ export default function Techfest() {
   }
 
   return (
-    <div className="min-h-screen pt-16 scroll-smooth" style={{ minHeight: '100dvh' }}>
-      {/* Loading overlay to prevent layout shifts */}
-      {!isLayoutStable && (
-        <div className="fixed inset-0 bg-gradient-to-br from-tech-light via-background to-gray-50 z-50 flex items-center justify-center">
-          <div className="text-center">
-            <div className="text-2xl font-bold mb-4 text-tech-dark" style={{ fontFamily: 'Inter, sans-serif' }}>Loading TechFest...</div>
-            <div className="animate-pulse text-tech-grey">Stabilizing layout and loading assets...</div>
-          </div>
-        </div>
-      )}
-      
+    <div className="min-h-screen pt-16 scroll-smooth">
       {/* Hero Section */}
       <section
         ref={heroRef}
         className="min-h-screen relative overflow-hidden"
         style={{
-          minHeight: 'calc(100dvh - 4rem)', // Use dvh for mobile Safari fix
           height: 'calc(100dvh - 4rem)',
           background: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 25%, #a8edea 50%, #fed6e3 75%, #d299c2 100%)'
         }}
@@ -492,10 +481,7 @@ export default function Techfest() {
           <TechFestBackground />
         </div>
         <div className="w-full h-full flex items-center justify-center px-4 sm:px-6 lg:px-8">
-          <div className="text-center space-y-6 lg:space-y-8 w-full max-w-4xl mx-auto relative z-20" style={{
-            opacity: isLayoutStable ? 1 : 0,
-            transition: 'opacity 0.5s ease-in-out'
-          }}>
+          <div className="text-center space-y-6 lg:space-y-8 w-full max-w-4xl mx-auto relative z-20">
             <div className="text-sm font-tech font-bold uppercase tracking-widest text-orange-300/80 mb-4 text-center">
               VAISH SOCIETY OF EDUCATION PRESENTS
             </div>
@@ -599,7 +585,7 @@ export default function Techfest() {
               className="overflow-y-scroll scroll-smooth relative"
               style={{
                 height: 'calc(100dvh - 4rem)',
-                scrollSnapType: isLayoutStable && filteredEvents.length > 0 ? 'y mandatory' : 'none',
+                scrollSnapType: filteredEvents.length > 0 ? 'y mandatory' : 'none',
                 scrollPaddingTop: '4rem' // Offset for navbar
               }}
             >
@@ -664,15 +650,10 @@ export default function Techfest() {
                       {/* Event Visual */}
                       <motion.div 
                         className="flex-shrink-0 relative z-20 flex items-center justify-center"
-                        initial={{ opacity: 0, x: 30, scale: 0.9 }}
-                        whileInView={{ opacity: 1, x: 0, scale: 1 }}
+                        initial={{ opacity: 0, x: 30 }}
+                        whileInView={{ opacity: 1, x: 0 }}
                         viewport={{ once: false, amount: 0.3 }}
-                        transition={{ 
-                          duration: 0.8, 
-                          delay: 0.4,
-                          ease: [0.25, 0.46, 0.45, 0.94],
-                          scale: { duration: 1.0 }
-                        }}
+                        transition={{ duration: 0.3 }}
                       >
                         {event.spline_right_url ? (
                           <div className="w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96 lg:w-[28rem] lg:h-[28rem] spline-container rounded-xl overflow-hidden bg-transparent relative flex items-center justify-center">
