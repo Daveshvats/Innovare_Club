@@ -22,7 +22,18 @@ export const authenticatedRequest = async (url: string, method = 'GET', data?: a
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  return apiRequest(url, method, data, { headers });
+  try {
+    return await apiRequest(url, method, data, { headers });
+  } catch (error: any) {
+    // Handle authentication errors
+    if (error.message.includes('401')) {
+      removeAuthToken();
+      // Redirect to login page
+      window.location.href = '/admin';
+      throw new Error('Your session has expired. Please log in again.');
+    }
+    throw error;
+  }
 };
 
 // Admin API functions

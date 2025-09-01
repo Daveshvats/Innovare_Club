@@ -113,6 +113,13 @@ export default function AdminTechnofest() {
         description: errorMessage,
         variant: "destructive",
       });
+      
+      // Handle authentication errors
+      if (errorMessage.includes('session has expired') || errorMessage.includes('Unauthorized')) {
+        setTimeout(() => {
+          window.location.href = '/admin';
+        }, 2000);
+      }
     },
   });
 
@@ -137,6 +144,13 @@ export default function AdminTechnofest() {
         description: errorMessage,
         variant: "destructive",
       });
+      
+      // Handle authentication errors
+      if (errorMessage.includes('session has expired') || errorMessage.includes('Unauthorized')) {
+        setTimeout(() => {
+          window.location.href = '/admin';
+        }, 2000);
+      }
     },
   });
 
@@ -159,6 +173,13 @@ export default function AdminTechnofest() {
         description: errorMessage,
         variant: "destructive",
       });
+      
+      // Handle authentication errors
+      if (errorMessage.includes('session has expired') || errorMessage.includes('Unauthorized')) {
+        setTimeout(() => {
+          window.location.href = '/admin';
+        }, 2000);
+      }
     },
   });
 
