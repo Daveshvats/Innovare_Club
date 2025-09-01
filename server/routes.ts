@@ -369,6 +369,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/admin/registrations/csv", requireAuth, async (req, res) => {
+    try {
+      const [regularRegistrations, techfestRegistrations] = await Promise.all([
+        storage.getRegistrations(),
+        storage.getTechfestRegistrations()
+      ]);
+      
+      // Combine and format all registrations for CSV
+      const allRegistrations = [
+        ...regularRegistrations.map(reg => ({
+          name: reg.name,
+          email: reg.email,
+          phone: reg.phone || '',
+          eventId: reg.eventId,
+          eventType: 'Event',
+          status: reg.status || 'pending',
+          createdAt: reg.createdAt
+        })),
+        ...techfestRegistrations.map(reg => ({
+          name: reg.teamName,
+          email: reg.contactEmail,
+          phone: reg.contactPhone || '',
+          eventId: reg.technofestId,
+          eventType: 'TechFest',
+          status: 'pending',
+          createdAt: reg.createdAt
+        }))
+      ];
+      
+      // CSV header
+      const headers = ['Name', 'Email', 'Phone', 'Event ID', 'Event Type', 'Status', 'Registration Date'];
+      let csvContent = headers.join(',') + '\n';
+      
+      // CSV rows
+      for (const registration of allRegistrations) {
+        const row = [
+          `"${registration.name || ''}"`,
+          `"${registration.email || ''}"`,
+          `"${registration.phone || ''}"`,
+          `"${registration.eventId || ''}"`,
+          `"${registration.eventType || ''}"`,
+          `"${registration.status || 'pending'}"`,
+          `"${registration.createdAt ? new Date(registration.createdAt).toISOString().split('T')[0] : ''}"`
+        ];
+        csvContent += row.join(',') + '\n';
+      }
+      
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', 'attachment; filename="registrations.csv"');
+      res.send(csvContent);
+    } catch (error) {
+      console.error('CSV export error:', error);
+      res.status(500).json({ message: "Failed to export CSV" });
+    }
+  });
+
   // Admin Events
   app.post("/api/admin/events", requireAuth, async (req, res) => {
     try {

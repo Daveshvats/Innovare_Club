@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { UserCheck, Mail, Phone, Calendar, User } from "lucide-react";
+import { UserCheck, Mail, Phone, Calendar, User, Download } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -76,6 +76,48 @@ export default function AdminRegistrations() {
     updateStatusMutation.mutate({ id, status });
   };
 
+  const downloadCSVMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch('/api/admin/registrations/csv', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to download CSV');
+      }
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = `registrations-${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "CSV file downloaded successfully",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleDownloadCSV = () => {
+    downloadCSVMutation.mutate();
+  };
+
   if (isLoading) {
     return (
       <div className="p-6 bg-tech-light min-h-screen">
@@ -102,6 +144,15 @@ export default function AdminRegistrations() {
           <div className="text-sm font-tech text-tech-grey">
             Total: {Array.isArray(registrations) ? registrations.length : 0} registrations
           </div>
+          <Button 
+            onClick={handleDownloadCSV}
+            disabled={downloadCSVMutation.isPending}
+            className="bg-tech-blue hover:bg-tech-blue/90 text-white font-tech"
+            data-testid="button-download-csv"
+          >
+            <Download className="h-4 w-4 mr-2" />
+            {downloadCSVMutation.isPending ? 'Downloading...' : 'Download CSV'}
+          </Button>
         </div>
       </div>
 

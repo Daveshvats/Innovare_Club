@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 // import * as Spline from '@splinetool/viewer';
 import { HomeRobot } from '@/components/home-robot';
 import { useScrollAnimation } from '@/hooks/use-scroll-animation';
+import { HoverBorderGradient } from '@/components/ui/hover-border-gradient';
 
 // Dynamic component loader for generated Spline components
 const DynamicSplineComponent: React.FC<{ 
@@ -502,21 +503,25 @@ export default function Techfest() {
                 className="mb-8"
               >
                 {!selectedCategory ? (
-                  <button
+                  <HoverBorderGradient
+                    as="button"
                     onClick={() => setShowCategoryDialog(true)}
-                    className="px-8 py-4 bg-black hover:bg-gray-900 text-white font-tech font-bold rounded-full transition-all duration-300 transform hover:scale-105 text-lg tracking-wide"
+                    className="px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-500 text-white font-tech font-bold text-lg tracking-wide"
+                    containerClassName="rounded-full"
                     data-testid="button-get-started"
                   >
                     GET STARTED →
-                  </button>
+                  </HoverBorderGradient>
                 ) : (
-                  <button
+                  <HoverBorderGradient
+                    as="button"
                     onClick={handleBackToCategories}
-                    className="px-8 py-4 bg-black hover:bg-gray-900 text-white font-tech font-bold rounded-full transition-all duration-300 transform hover:scale-105 text-lg tracking-wide"
+                    className="px-8 py-4 bg-gradient-to-r from-gray-700 to-gray-900 text-white font-tech font-bold text-lg tracking-wide"
+                    containerClassName="rounded-full"
                     data-testid="button-back-to-categories-hero"
                   >
                     ← BACK TO CATEGORIES
-                  </button>
+                  </HoverBorderGradient>
                 )}
               </motion.div>
             </div>
@@ -580,7 +585,7 @@ export default function Techfest() {
                   key={event.id}
                   data-event-index={idx}
                   className="h-screen snap-start bg-transparent flex items-center"
-                  initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                  initial={{ opacity: 1, scale: 1, y: 0 }}
                   whileInView={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.95, y: -20 }}
                   viewport={{ once: false, amount: 0.3 }}
@@ -624,21 +629,22 @@ export default function Techfest() {
                           </span>
                         </div>
                         <div className="flex flex-col sm:flex-row gap-3 md:gap-4 pt-2 justify-center lg:justify-start">
-                          <button
+                          <HoverBorderGradient
                             onClick={() => setRegisterEvent(event)}
-                            className="w-full sm:w-auto px-6 md:px-8 py-3 md:py-4 bg-black hover:bg-gray-900 rounded-xl hover:shadow-lg transition-all transform hover:-translate-y-1 hover-lift text-sm md:text-base font-tech font-semibold"
-                            style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}
+                            className="w-full sm:w-auto px-6 md:px-8 py-3 md:py-4 bg-gradient-to-r from-blue-500 to-purple-500 text-white font-tech font-semibold"
+                            containerClassName="w-full sm:w-auto"
                             data-testid={`button-register-${event.id}`}
                           >
-                            <span className="text-white">Register Now</span>
-                          </button>
-                          <button
+                            Register Now
+                          </HoverBorderGradient>
+                          <HoverBorderGradient
                             onClick={() => setLearnMoreEvent(event)}
-                            className="w-full sm:w-auto px-6 md:px-8 py-3 md:py-4 bg-black hover:bg-gray-900 rounded-xl transition-all hover-lift text-sm md:text-base font-tech font-semibold border border-gray-700"
+                            className="w-full sm:w-auto px-6 md:px-8 py-3 md:py-4 bg-gradient-to-r from-gray-700 to-gray-900 text-white font-tech font-semibold"
+                            containerClassName="w-full sm:w-auto"
                             data-testid={`button-learn-more-${event.id}`}
                           >
-                            <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">Learn More</span>
-                          </button>
+                            Learn More
+                          </HoverBorderGradient>
                         </div>
                       </motion.div>
 
