@@ -574,7 +574,7 @@ export default function Techfest() {
 
             {/* Back Button */}
             {selectedCategory && filteredEvents.length > 0 && (
-              <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-2">
+              <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-1">
                 <button
                   onClick={handleBackToCategories}
                   className="inline-flex items-center gap-2 px-4 py-2 text-tech-blue hover:text-tech-dark transition-colors font-tech font-medium"
@@ -600,11 +600,11 @@ export default function Techfest() {
                   viewport={{ once: true, margin: "-50px" }}
                   transition={{ duration: 0.6, delay: 0.2 }}
                 >
-                  <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8 min-h-screen flex items-center">
-                    <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+                  <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-2 md:py-4 min-h-screen flex items-center">
+                    <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 lg:gap-6 items-center w-full">
                       {/* Event Content */}
                       <motion.div 
-                        className="space-y-4 md:space-y-6 order-2 lg:order-1"
+                        className="space-y-3 md:space-y-4 order-2 lg:order-1 lg:col-span-3"
                         initial={{ opacity: 0, x: -50 }}
                         whileInView={{ opacity: 1, x: 0 }}
                         viewport={{ once: true }}
@@ -613,10 +613,10 @@ export default function Techfest() {
                         <div className="text-xs md:text-sm font-tech font-bold uppercase tracking-widest text-tech-blue">
                           Event #{event.number || idx + 1}
                         </div>
-                        <h3 className="font-tech text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-tech-dark leading-tight">
+                        <h3 className="font-tech text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-tech-dark leading-tight">
                           {event.name}
                         </h3>
-                        <p className="text-base md:text-lg lg:text-xl text-tech-grey leading-relaxed">
+                        <p className="text-sm md:text-base lg:text-lg text-tech-grey leading-relaxed">
                           {event.short_description}
                         </p>
                         <div className="flex flex-wrap gap-2">
@@ -627,7 +627,7 @@ export default function Techfest() {
                             Team: {event.team_min}–{event.team_max}
                           </span>
                         </div>
-                        <div className="flex flex-col sm:flex-row gap-3 md:gap-4 pt-2 md:pt-4">
+                        <div className="flex flex-col sm:flex-row gap-2 md:gap-3 pt-1 md:pt-2">
                           <button
                             onClick={() => setRegisterEvent(event)}
                             className="w-full sm:w-auto px-6 md:px-8 py-3 md:py-4 tech-gradient text-white font-tech font-semibold rounded-xl hover:shadow-lg transition-all transform hover:-translate-y-1 hover-lift text-sm md:text-base"
@@ -647,14 +647,14 @@ export default function Techfest() {
 
                       {/* Event Visual */}
                       <motion.div 
-                        className="backdrop-blur-md bg-white/5 border border-white/10 shadow-2xl p-4 md:p-6 lg:p-8 rounded-2xl order-1 lg:order-2"
+                        className="bg-transparent border-0 p-2 md:p-3 rounded-2xl order-1 lg:order-2 lg:col-span-2"
                         initial={{ opacity: 0, x: 50 }}
                         whileInView={{ opacity: 1, x: 0 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.6, delay: 0.4 }}
                       >
                         {event.spline_right_url ? (
-                          <div className="aspect-square spline-container rounded-xl overflow-hidden">
+                          <div className="aspect-square spline-container rounded-xl overflow-hidden bg-transparent">
                             <DynamicSplineComponent
                               eventName={event.name}
                               fallbackUrl={event.spline_right_url}
@@ -662,10 +662,10 @@ export default function Techfest() {
                             />
                           </div>
                         ) : (
-                          <div className="aspect-square bg-gradient-to-br from-tech-blue to-tech-green rounded-xl flex items-center justify-center">
+                          <div className="aspect-square bg-gradient-to-br from-tech-blue/30 to-tech-green/30 rounded-xl flex items-center justify-center backdrop-blur-sm">
                             <div className="text-center text-white">
-                              <div className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-tech font-bold mb-2 md:mb-4">#{event.number || idx + 1}</div>
-                              <div className="text-sm sm:text-base md:text-lg lg:text-xl font-tech uppercase tracking-wider">{event.category}</div>
+                              <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-tech font-bold mb-1 md:mb-2">#{event.number || idx + 1}</div>
+                              <div className="text-xs sm:text-sm md:text-base lg:text-lg font-tech uppercase tracking-wider">{event.category}</div>
                             </div>
                           </div>
                         )}
@@ -674,9 +674,9 @@ export default function Techfest() {
 
                     {/* Scroll indicator */}
                     {idx < filteredEvents.length - 1 && (
-                      <div className="flex justify-center mt-16">
-                        <div className="animate-bounce text-tech-grey">
-                          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div className="flex justify-center mt-8">
+                        <div className="animate-bounce text-white/60">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
                           </svg>
                         </div>
