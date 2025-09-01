@@ -4,6 +4,8 @@ import React, { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 // import * as Spline from '@splinetool/viewer';
 import { HomeRobot } from '@/components/home-robot';
+import { MobileHeroSpline } from '@/components/mobile-hero-spline';
+import { DesktopHeroSpline } from '@/components/desktop-hero-spline';
 import { useScrollAnimation } from '@/hooks/use-scroll-animation';
 
 // Dynamic component loader for generated Spline components
@@ -471,55 +473,69 @@ export default function Techfest() {
         }}
         data-testid="techfest-hero-section"
       >
-        {/* Background Spline */}
+        {/* Hero Content with Spline Background */}
         <div className="absolute inset-0 z-0">
-          <TechFestBackground />
+          {/* Mobile Spline Background */}
+          <div className="block lg:hidden w-full h-full">
+            <MobileHeroSpline className="w-full h-full" />
+          </div>
+          {/* Desktop Spline Background */}
+          <div className="hidden lg:block w-full h-full">
+            <DesktopHeroSpline className="w-full h-full" />
+          </div>
         </div>
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center">
-          <div className="w-full relative z-20">
-            <div className="text-center lg:text-center order-2 lg:order-1 space-y-6 lg:space-y-8 w-full">
-              <div className="text-sm font-tech font-bold uppercase tracking-widest text-orange-300/80 mb-4 animate-slide-left">
-                VAISH SOCIETY OF EDUCATION PRESENTS
-              </div>
-              <motion.h1 
-                className="font-tech text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-black leading-none mb-8 animate-slide-left"
-                style={{
-                  background: 'linear-gradient(135deg, #000000 0%, #333333 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text'
-                }}
-                initial={{ opacity: 0, y: 50 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.2 }}
+        
+        {/* Content Overlay */}
+        <div className="relative z-20 container mx-auto px-4 sm:px-6 lg:px-8 h-full flex flex-col items-center justify-center text-center">
+          <div className="text-sm font-tech font-bold uppercase tracking-widest text-orange-300/80 mb-4">
+            VAISH SOCIETY OF EDUCATION PRESENTS
+          </div>
+          <motion.h1 
+            className="font-tech text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-black leading-none mb-8"
+            style={{
+              background: 'linear-gradient(135deg, #000000 0%, #333333 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text'
+            }}
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+          >
+            TECH<br />FEST'25
+          </motion.h1>
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.5 }}
+            className="mb-8"
+          >
+            {!selectedCategory ? (
+              <button
+                onClick={() => setShowCategoryDialog(true)}
+                className="px-8 py-4 bg-black hover:bg-gray-900 text-white font-tech font-bold rounded-full transition-all duration-300 transform hover:scale-105 text-lg tracking-wide"
+                data-testid="button-get-started"
               >
-                TECH<br />FEST'25
-              </motion.h1>
-              <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.5 }}
-                className="mb-8"
+                GET STARTED →
+              </button>
+            ) : (
+              <button
+                onClick={handleBackToCategories}
+                className="px-8 py-4 bg-black hover:bg-gray-900 text-white font-tech font-bold rounded-full transition-all duration-300 transform hover:scale-105 text-lg tracking-wide"
+                data-testid="button-back-to-categories-hero"
               >
-                {!selectedCategory ? (
-                  <button
-                    onClick={() => setShowCategoryDialog(true)}
-                    className="px-8 py-4 bg-black hover:bg-gray-900 text-white font-tech font-bold rounded-full transition-all duration-300 transform hover:scale-105 text-lg tracking-wide"
-                    data-testid="button-get-started"
-                  >
-                    GET STARTED →
-                  </button>
-                ) : (
-                  <button
-                    onClick={handleBackToCategories}
-                    className="px-8 py-4 bg-black hover:bg-gray-900 text-white font-tech font-bold rounded-full transition-all duration-300 transform hover:scale-105 text-lg tracking-wide"
-                    data-testid="button-back-to-categories-hero"
-                  >
-                    ← BACK TO CATEGORIES
-                  </button>
-                )}
-              </motion.div>
-            </div>
+                ← BACK TO CATEGORIES
+              </button>
+            )}
+          </motion.div>
+          
+          {/* Scroll Icon - Desktop Only */}
+          <div className="hidden lg:block absolute bottom-8 left-1/2 transform -translate-x-1/2">
+            <div 
+              dangerouslySetInnerHTML={{
+                __html: `<dotlottie-wc src="https://lottie.host/bd4a5448-00ed-4474-9e0b-8031a5c6ead2/YueNy6H1KL.lottie" style="width: 60px; height: 60px" speed="1" autoplay loop></dotlottie-wc>`
+              }}
+            />
           </div>
         </div>
 
