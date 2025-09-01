@@ -4,8 +4,6 @@ import React, { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 // import * as Spline from '@splinetool/viewer';
 import { HomeRobot } from '@/components/home-robot';
-import { MobileHeroSpline } from '@/components/mobile-hero-spline';
-import { DesktopHeroSpline } from '@/components/desktop-hero-spline';
 import { useScrollAnimation } from '@/hooks/use-scroll-animation';
 
 // Dynamic component loader for generated Spline components
@@ -473,69 +471,55 @@ export default function Techfest() {
         }}
         data-testid="techfest-hero-section"
       >
-        {/* Hero Content with Spline Background */}
+        {/* Background Spline */}
         <div className="absolute inset-0 z-0">
-          {/* Mobile Spline Background */}
-          <div className="block lg:hidden w-full h-full">
-            <MobileHeroSpline className="w-full h-full" />
-          </div>
-          {/* Desktop Spline Background */}
-          <div className="hidden lg:block w-full h-full">
-            <DesktopHeroSpline className="w-full h-full" />
-          </div>
+          <TechFestBackground />
         </div>
-        
-        {/* Content Overlay */}
-        <div className="relative z-20 container mx-auto px-4 sm:px-6 lg:px-8 h-full flex flex-col items-center justify-center text-center">
-          <div className="text-sm font-tech font-bold uppercase tracking-widest text-orange-300/80 mb-4">
-            VAISH SOCIETY OF EDUCATION PRESENTS
-          </div>
-          <motion.h1 
-            className="font-tech text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-black leading-none mb-8"
-            style={{
-              background: 'linear-gradient(135deg, #000000 0%, #333333 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text'
-            }}
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-          >
-            TECH<br />FEST'25
-          </motion.h1>
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.5 }}
-            className="mb-8"
-          >
-            {!selectedCategory ? (
-              <button
-                onClick={() => setShowCategoryDialog(true)}
-                className="px-8 py-4 bg-black hover:bg-gray-900 text-white font-tech font-bold rounded-full transition-all duration-300 transform hover:scale-105 text-lg tracking-wide"
-                data-testid="button-get-started"
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center">
+          <div className="w-full relative z-20">
+            <div className="text-center lg:text-center order-2 lg:order-1 space-y-6 lg:space-y-8 w-full">
+              <div className="text-sm font-tech font-bold uppercase tracking-widest text-orange-300/80 mb-4 animate-slide-left">
+                VAISH SOCIETY OF EDUCATION PRESENTS
+              </div>
+              <motion.h1 
+                className="font-tech text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-black leading-none mb-8 animate-slide-left"
+                style={{
+                  background: 'linear-gradient(135deg, #000000 0%, #333333 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text'
+                }}
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.2 }}
               >
-                GET STARTED →
-              </button>
-            ) : (
-              <button
-                onClick={handleBackToCategories}
-                className="px-8 py-4 bg-black hover:bg-gray-900 text-white font-tech font-bold rounded-full transition-all duration-300 transform hover:scale-105 text-lg tracking-wide"
-                data-testid="button-back-to-categories-hero"
+                TECH<br />FEST'25
+              </motion.h1>
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.5 }}
+                className="mb-8"
               >
-                ← BACK TO CATEGORIES
-              </button>
-            )}
-          </motion.div>
-          
-          {/* Scroll Icon - Desktop Only */}
-          <div className="hidden lg:block absolute bottom-8 left-1/2 transform -translate-x-1/2">
-            <div 
-              dangerouslySetInnerHTML={{
-                __html: `<dotlottie-wc src="https://lottie.host/bd4a5448-00ed-4474-9e0b-8031a5c6ead2/YueNy6H1KL.lottie" style="width: 60px; height: 60px" speed="1" autoplay loop></dotlottie-wc>`
-              }}
-            />
+                {!selectedCategory ? (
+                  <button
+                    onClick={() => setShowCategoryDialog(true)}
+                    className="px-8 py-4 bg-black hover:bg-gray-900 text-white font-tech font-bold rounded-full transition-all duration-300 transform hover:scale-105 text-lg tracking-wide"
+                    data-testid="button-get-started"
+                  >
+                    GET STARTED →
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleBackToCategories}
+                    className="px-8 py-4 bg-black hover:bg-gray-900 text-white font-tech font-bold rounded-full transition-all duration-300 transform hover:scale-105 text-lg tracking-wide"
+                    data-testid="button-back-to-categories-hero"
+                  >
+                    ← BACK TO CATEGORIES
+                  </button>
+                )}
+              </motion.div>
+            </div>
           </div>
         </div>
 
@@ -730,6 +714,69 @@ export default function Techfest() {
         </section>
       )}
 
+      {/* Category Selection Dialog */}
+      <AnimatePresence>
+        {showCategoryDialog && !selectedCategory && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+            onClick={() => setShowCategoryDialog(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-background rounded-2xl p-4 sm:p-6 md:p-8 max-w-4xl w-full mx-4 shadow-2xl border border-border"
+            >
+              <div className="text-center mb-6 sm:mb-8">
+                <h3 className="font-tech text-xl sm:text-2xl md:text-3xl font-bold text-tech-dark mb-4">
+                  Choose Your Category
+                </h3>
+                <p className="text-tech-grey">
+                  Select a category to explore available events
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
+                {categories.map((category) => (
+                  <button
+                    key={category.id}
+                    onClick={() => handleCategorySelect(category.id)}
+                    className="backdrop-blur-md bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 shadow-xl hover:shadow-2xl p-4 sm:p-6 rounded-xl transition-all hover-lift text-left group"
+                    data-testid={`category-${category.id}`}
+                  >
+                    <div className="text-2xl sm:text-3xl md:text-4xl mb-3 sm:mb-4 group-hover:scale-110 transition-transform">
+                      {category.icon}
+                    </div>
+                    <h4 className="font-tech text-lg sm:text-xl font-bold text-tech-dark mb-2 group-hover:text-tech-blue transition-colors">
+                      {category.name}
+                    </h4>
+                    <p className="text-tech-grey text-sm leading-relaxed">
+                      {category.description}
+                    </p>
+                    <div className="mt-4 text-xs font-tech uppercase tracking-wider text-tech-blue opacity-0 group-hover:opacity-100 transition-opacity">
+                      Explore →
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              <div className="text-center mt-8">
+                <button
+                  onClick={() => setShowCategoryDialog(false)}
+                  className="px-6 py-2 text-tech-grey hover:text-tech-dark font-tech transition-colors"
+                  data-testid="button-close-dialog"
+                >
+                  Cancel
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Modals */}
       <AnimatePresence>
@@ -905,70 +952,6 @@ export default function Techfest() {
               </div>
             </form>
           </Modal>
-        )}
-      </AnimatePresence>
-
-      {/* Category Selection Dialog */}
-      <AnimatePresence>
-        {showCategoryDialog && !selectedCategory && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
-            onClick={() => setShowCategoryDialog(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              onClick={(e) => e.stopPropagation()}
-              className="bg-background rounded-2xl p-4 sm:p-6 md:p-8 max-w-4xl w-full mx-4 shadow-2xl border border-border"
-            >
-              <div className="text-center mb-6 sm:mb-8">
-                <h3 className="font-tech text-xl sm:text-2xl md:text-3xl font-bold text-tech-dark mb-4">
-                  Choose Your Category
-                </h3>
-                <p className="text-tech-grey">
-                  Select a category to explore available events
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
-                {categories.map((category) => (
-                  <button
-                    key={category.id}
-                    onClick={() => handleCategorySelect(category.id)}
-                    className="backdrop-blur-md bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 shadow-xl hover:shadow-2xl p-4 sm:p-6 rounded-xl transition-all hover-lift text-left group"
-                    data-testid={`category-${category.id}`}
-                  >
-                    <div className="text-2xl sm:text-3xl md:text-4xl mb-3 sm:mb-4 group-hover:scale-110 transition-transform">
-                      {category.icon}
-                    </div>
-                    <h4 className="font-tech text-lg sm:text-xl font-bold text-tech-dark mb-2 group-hover:text-tech-blue transition-colors">
-                      {category.name}
-                    </h4>
-                    <p className="text-tech-grey text-sm leading-relaxed">
-                      {category.description}
-                    </p>
-                    <div className="mt-4 text-xs font-tech uppercase tracking-wider text-tech-blue opacity-0 group-hover:opacity-100 transition-opacity">
-                      Explore →
-                    </div>
-                  </button>
-                ))}
-              </div>
-
-              <div className="text-center mt-8">
-                <button
-                  onClick={() => setShowCategoryDialog(false)}
-                  className="px-6 py-2 text-tech-grey hover:text-tech-dark font-tech transition-colors"
-                  data-testid="button-close-dialog"
-                >
-                  Cancel
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
         )}
       </AnimatePresence>
     </div>
