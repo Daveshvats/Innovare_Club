@@ -24,6 +24,10 @@ export default function AdminRegistrations() {
     queryKey: ["/api/events"],
   });
 
+  const { data: techfestEvents } = useQuery({
+    queryKey: ["/api/technofest"],
+  });
+
   const updateStatusMutation = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
       return await apiRequest(`/api/admin/registrations/${id}/status`, "PATCH", { status });
@@ -44,10 +48,16 @@ export default function AdminRegistrations() {
     },
   });
 
-  const getEventTitle = (eventId: string) => {
-    if (!Array.isArray(events)) return "Unknown Event";
-    const event = events.find((e: any) => e.id === eventId);
-    return event ? event.title : "Unknown Event";
+  const getEventTitle = (eventId: string, eventType?: string) => {
+    if (eventType === 'TechFest') {
+      if (!Array.isArray(techfestEvents)) return "Unknown TechFest Event";
+      const event = techfestEvents.find((e: any) => e.id === eventId);
+      return event ? `${event.name} (TechFest)` : "Unknown TechFest Event";
+    } else {
+      if (!Array.isArray(events)) return "Unknown Event";
+      const event = events.find((e: any) => e.id === eventId);
+      return event ? event.title : "Unknown Event";
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -106,7 +116,12 @@ export default function AdminRegistrations() {
                       <User className="h-5 w-5 mr-2" />
                       {registration.name}
                     </CardTitle>
-                    <p className="text-tech-blue font-tech mt-1">{getEventTitle(registration.eventId)}</p>
+                    <p className="text-tech-blue font-tech mt-1">{getEventTitle(registration.eventId, registration.eventType)}</p>
+                    {registration.eventType && (
+                      <Badge variant="outline" className="mt-1 text-xs">
+                        {registration.eventType}
+                      </Badge>
+                    )}
                   </div>
                   <div className="flex items-center space-x-2">
                     <Badge className={getStatusColor(registration.status)}>

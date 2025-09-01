@@ -1565,6 +1565,10 @@ export class DatabaseStorage implements IStorage {
     return newRegistration;
   }
 
+  async getTechfestRegistrations(): Promise<TechfestRegistration[]> {
+    return await db.select().from(techfestRegistrations);
+  }
+
   async deleteTechfestRegistration(id: string): Promise<boolean> {
     const result = await db.delete(techfestRegistrations).where(eq(techfestRegistrations.id, id));
     return (result.rowCount || 0) > 0;

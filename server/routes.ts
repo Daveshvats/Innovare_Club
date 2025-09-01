@@ -327,9 +327,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin APIs
   app.get("/api/admin/registrations", requireAuth, async (req, res) => {
     try {
-      const registrations = await storage.getRegistrations();
-      res.json(registrations);
+      const [regularRegistrations, techfestRegistrations] = await Promise.all([
+        storage.getRegistrations(),
+        storage.getTechfestRegistrations()
+      ]);
+      
+      // Combine and format all registrations
+      const allRegistrations = [
+        ...regularRegistrations.map(reg => ({
+          ...reg,
+          type: 'regular',
+          eventType: 'Event'
+        })),
+        ...techfestRegistrations.map(reg => ({
+          ...reg,
+          type: 'techfest',
+          eventType: 'TechFest',
+          name: reg.teamName,
+          email: reg.contactEmail,
+          eventId: reg.technofestId,
+          status: 'pending' // TechFest registrations don't have status by default
+        }))
+      ];
+      
+      res.json(allRegistrations);
     } catch (error) {
+      console.error('Failed to fetch registrations:', error);
       res.status(500).json({ message: "Failed to fetch registrations" });
     }
   });

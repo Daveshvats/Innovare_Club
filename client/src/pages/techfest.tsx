@@ -345,14 +345,14 @@ export default function Techfest() {
     }
   }, [selectedCategory, events]);
 
-  // Handle scroll-based event switching with intersection observer
+  // Handle scroll-based event switching with intersection observer and auto-scroll
   useEffect(() => {
     if (filteredEvents.length === 0) return;
 
     const observerOptions = {
       root: null,
-      rootMargin: '-10% 0px -10% 0px',
-      threshold: 0.8
+      rootMargin: '-20% 0px -20% 0px',
+      threshold: 0.6
     };
 
     const observerCallback = (entries: IntersectionObserverEntry[]) => {
@@ -377,6 +377,25 @@ export default function Techfest() {
       observer.disconnect();
     };
   }, [filteredEvents.length, currentEventIndex]);
+
+  // Auto-scroll between events
+  useEffect(() => {
+    if (filteredEvents.length <= 1) return;
+
+    const autoScrollInterval = setInterval(() => {
+      const nextIndex = (currentEventIndex + 1) % filteredEvents.length;
+      const nextEventElement = document.querySelector(`[data-event-index="${nextIndex}"]`);
+      
+      if (nextEventElement) {
+        nextEventElement.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        });
+      }
+    }, 10000); // Auto-scroll every 10 seconds
+
+    return () => clearInterval(autoScrollInterval);
+  }, [currentEventIndex, filteredEvents.length]);
 
   // Registration handlers
   useEffect(() => {
@@ -545,9 +564,9 @@ export default function Techfest() {
       {selectedCategory && filteredEvents.length > 0 && (
         <section id="events-section" className="min-h-screen" style={{ scrollBehavior: 'smooth' }}>
           {/* Category Header */}
-          <div className="bg-gradient-to-br from-tech-light via-background to-gray-50 py-16">
+          <div className="bg-gradient-to-br from-tech-light via-background to-gray-50 py-4">
             <div className="responsive-container">
-              <div className="text-center mb-12">
+              <div className="text-center mb-4">
                 <h2 className="font-tech text-3xl sm:text-4xl lg:text-5xl font-bold text-tech-dark mb-4">
                   {categories.find(c => c.id === selectedCategory)?.name}
                 </h2>
@@ -574,7 +593,7 @@ export default function Techfest() {
 
             {/* Back Button */}
             {selectedCategory && filteredEvents.length > 0 && (
-              <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-1">
+              <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-1 pb-1">
                 <button
                   onClick={handleBackToCategories}
                   className="inline-flex items-center gap-2 px-4 py-2 text-tech-blue hover:text-tech-dark transition-colors font-tech font-medium"
