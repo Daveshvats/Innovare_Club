@@ -5,29 +5,121 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { HomeRobot } from '@/components/home-robot';
 import { useScrollAnimation } from '@/hooks/use-scroll-animation';
 
-// Event spline component for individual events (using iframe for clean display)
-const EventSpline: React.FC<{ splineUrl?: string; className?: string }> = ({ splineUrl, className = "" }) => {
-  if (!splineUrl) return null;
+// Dynamic component loader for generated Spline components
+const DynamicSplineComponent: React.FC<{ 
+  eventName: string; 
+  className?: string; 
+  fallbackUrl?: string;
+}> = ({ eventName, className = "", fallbackUrl }) => {
+  const [SplineComponent, setSplineComponent] = useState<React.ComponentType<any> | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  return (
-    <div className={`absolute inset-0 ${className}`}>
-      <iframe 
-        src={splineUrl}
-        className="w-full h-full object-cover border-0"
-        style={{ 
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          zIndex: -1,
-          pointerEvents: 'none',
-          border: 'none'
-        }}
-        title="3D Background"
+  useEffect(() => {
+    const loadComponent = async () => {
+      try {
+        // Convert event name to component name (same logic as component generator)
+        const componentName = eventName.toLowerCase().replace(/[^a-z0-9]/g, '-');
+        
+        // Try to dynamically import the generated component
+        const componentModule = await import(`@/components/generated/${componentName}.tsx`);
+        
+        // The component is exported with capitalized first letter and no spaces
+        const exportName = eventName.replace(/[^a-zA-Z0-9]/g, '').replace(/^./, str => str.toUpperCase());
+        const ComponentClass = componentModule[exportName];
+        
+        if (ComponentClass) {
+          setSplineComponent(() => ComponentClass);
+        }
+      } catch (error) {
+        console.log(`No generated component found for ${eventName}, using fallback`);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadComponent();
+  }, [eventName]);
+
+  if (isLoading) {
+    return (
+      <div className={`flex items-center justify-center ${className}`}>
+        <div className="animate-pulse text-muted-foreground">Loading 3D scene...</div>
+      </div>
+    );
+  }
+
+  if (SplineComponent) {
+    return <SplineComponent className={className} />;
+  }
+
+  // Fallback to iframe if component not found
+  if (fallbackUrl) {
+    return (
+      <div className={`absolute inset-0 ${className}`}>
+        <iframe 
+          src={fallbackUrl}
+          className="w-full h-full object-cover border-0"
+          style={{ 
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            zIndex: -1,
+            pointerEvents: 'none',
+            border: 'none'
+          }}
+          title="3D Background"
+        />
+      </div>
+    );
+  }
+
+  return null;
+};
+
+// Event spline component for individual events (uses generated components)
+const EventSpline: React.FC<{ 
+  eventName?: string; 
+  splineUrl?: string; 
+  className?: string 
+}> = ({ eventName, splineUrl, className = "" }) => {
+  if (!eventName && !splineUrl) return null;
+
+  if (eventName) {
+    return (
+      <DynamicSplineComponent 
+        eventName={eventName}
+        className={className}
+        fallbackUrl={splineUrl}
       />
-    </div>
-  );
+    );
+  }
+
+  // Fallback to iframe for events without names
+  if (splineUrl) {
+    return (
+      <div className={`absolute inset-0 ${className}`}>
+        <iframe 
+          src={splineUrl}
+          className="w-full h-full object-cover border-0"
+          style={{ 
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            zIndex: -1,
+            pointerEvents: 'none',
+            border: 'none'
+          }}
+          title="3D Background"
+        />
+      </div>
+    );
+  }
+
+  return null;
 };
 
 type EventItem = {
@@ -382,9 +474,10 @@ export default function Techfest() {
           {/* Events Container */}
           <div className="relative">
             {/* Current Event Background Spline */}
-            {filteredEvents[currentEventIndex]?.splineRightUrl && (
+            {filteredEvents[currentEventIndex]?.spline_right_url && (
               <EventSpline
-                splineUrl={filteredEvents[currentEventIndex].splineRightUrl}
+                eventName={filteredEvents[currentEventIndex].name}
+                splineUrl={filteredEvents[currentEventIndex].spline_right_url}
                 className="opacity-30 fixed inset-0"
               />
             )}
@@ -437,12 +530,12 @@ export default function Techfest() {
 
                       {/* Event Visual */}
                       <div className="geometric-card p-8 rounded-2xl">
-                        {event.splineRightUrl ? (
+                        {event.spline_right_url ? (
                           <div className="aspect-square spline-container rounded-xl overflow-hidden">
-                            <iframe
-                              src={event.splineRightUrl}
-                              className="w-full h-full border-0"
-                              title={`3D model for ${event.name}`}
+                            <DynamicSplineComponent
+                              eventName={event.name}
+                              fallbackUrl={event.spline_right_url}
+                              className="w-full h-full"
                             />
                           </div>
                         ) : (
