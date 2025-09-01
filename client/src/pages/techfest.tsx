@@ -465,54 +465,60 @@ export default function Techfest() {
       {/* Hero Section */}
       <section
         ref={heroRef}
-        className="min-h-screen bg-gradient-to-br from-tech-light via-background to-gray-50 relative overflow-hidden"
+        className="min-h-screen relative overflow-hidden"
+        style={{
+          background: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 25%, #a8edea 50%, #fed6e3 75%, #d299c2 100%)'
+        }}
         data-testid="techfest-hero-section"
       >
         {/* Background Spline */}
         <div className="absolute inset-0 z-0">
           <TechFestBackground />
         </div>
-        <div className="responsive-container py-12 sm:py-20 lg:py-24">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center px-4 sm:px-6">
-            <div className="text-center lg:text-left order-2 lg:order-1 space-y-6 lg:space-y-8">
-              <div className="text-sm font-tech font-bold uppercase tracking-widest text-tech-blue mb-4 animate-slide-left">
-                Innovare presents
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center">
+          <div className="w-full relative z-20">
+            <div className="text-center lg:text-center order-2 lg:order-1 space-y-6 lg:space-y-8 w-full">
+              <div className="text-sm font-tech font-bold uppercase tracking-widest text-orange-300/80 mb-4 animate-slide-left">
+                VAISH SOCIETY OF EDUCATION PRESENTS
               </div>
-              <h1 className="font-tech text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-tech-dark leading-tight animate-slide-left">
-                <span className="tech-gradient bg-clip-text text-transparent">TECHFEST</span>
-                <br />2024
-              </h1>
-              <p className="text-lg sm:text-xl text-tech-grey max-w-2xl mx-auto lg:mx-0 animate-slide-left" style={{animationDelay: '0.2s'}}>
-                Showcase your skills, compete with the best, and push the boundaries of innovation across multiple disciplines.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start animate-bounce-in" style={{animationDelay: '0.4s'}}>
+              <motion.h1 
+                className="font-tech text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-black leading-none mb-8 animate-slide-left"
+                style={{
+                  background: 'linear-gradient(135deg, #000000 0%, #333333 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text'
+                }}
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.2 }}
+              >
+                TECH<br />FEST'25
+              </motion.h1>
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.5 }}
+                className="mb-8"
+              >
                 {!selectedCategory ? (
                   <button
                     onClick={() => setShowCategoryDialog(true)}
-                    className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 tech-gradient text-white font-tech font-semibold rounded-xl hover:shadow-lg transition-all transform hover:-translate-y-1 hover-lift text-base sm:text-lg"
-                    data-testid="button-browse-events"
+                    className="px-8 py-4 bg-black hover:bg-gray-900 text-white font-tech font-bold rounded-full transition-all duration-300 transform hover:scale-105 text-lg tracking-wide"
+                    data-testid="button-get-started"
                   >
-                    Browse Events
+                    GET STARTED →
                   </button>
                 ) : (
                   <button
                     onClick={handleBackToCategories}
-                    className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 border-2 border-tech-blue text-tech-blue font-tech font-semibold rounded-xl hover:bg-tech-blue hover:text-white transition-all hover-lift text-base sm:text-lg"
-                    data-testid="button-back-to-categories"
+                    className="px-8 py-4 bg-black hover:bg-gray-900 text-white font-tech font-bold rounded-full transition-all duration-300 transform hover:scale-105 text-lg tracking-wide"
+                    data-testid="button-back-to-categories-hero"
                   >
-                    Back to Categories
+                    ← BACK TO CATEGORIES
                   </button>
                 )}
-                <button
-                  className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 border-2 border-tech-blue text-tech-blue font-tech font-semibold rounded-xl hover:bg-tech-blue hover:text-white transition-all hover-lift text-base sm:text-lg"
-                  data-testid="button-learn-more"
-                >
-                  Learn More
-                </button>
-              </div>
-            </div>
-            <div className="order-1 lg:order-2 animate-float animate-slide-right">
-              <HomeRobot className="w-full h-full max-w-lg mx-auto" />
+              </motion.div>
             </div>
           </div>
         </div>
@@ -550,9 +556,9 @@ export default function Techfest() {
           <div className="relative">
             {/* Background remains the pink gradient TechFest background only */}
 
-            {/* Compact Back Button */}
+            {/* Compact Back Button - Fixed Mobile Positioning */}
             {selectedCategory && filteredEvents.length > 0 && (
-              <div className="absolute top-4 left-4 z-50">
+              <div className="absolute top-20 sm:top-4 left-4 z-50">
                 <button
                   onClick={handleBackToCategories}
                   className="inline-flex items-center gap-1 px-3 py-2 bg-black/10 hover:bg-black/20 text-tech-blue hover:text-tech-dark transition-all duration-300 font-tech font-medium text-sm rounded-md backdrop-blur-sm border border-white/10 hover:border-white/20"
@@ -561,7 +567,8 @@ export default function Techfest() {
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                   </svg>
-                  Back to Categories
+                  <span className="hidden sm:inline">Back to Categories</span>
+                  <span className="sm:hidden">Back</span>
                 </button>
               </div>
             )}
@@ -585,11 +592,11 @@ export default function Techfest() {
                     y: { duration: 0.8 }
                   }}
                 >
-                  <div className="flex items-center justify-center w-full h-full relative z-10">
-                    <div className="flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-12 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                  <div className="flex items-center justify-center w-full h-full relative z-10 pt-16 sm:pt-0">
+                    <div className="flex flex-col lg:flex-row items-center justify-center gap-6 lg:gap-12 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                       {/* Event Content */}
                       <motion.div 
-                        className="flex-1 space-y-4 md:space-y-6 text-center lg:text-left lg:max-w-md"
+                        className="flex-1 space-y-3 md:space-y-4 text-center lg:text-left lg:max-w-md px-2 sm:px-0"
                         initial={{ opacity: 0, x: -30 }}
                         whileInView={{ opacity: 1, x: 0 }}
                         viewport={{ once: false, amount: 0.3 }}
@@ -602,10 +609,10 @@ export default function Techfest() {
                         <div className="text-xs md:text-sm font-tech font-bold uppercase tracking-widest text-tech-blue">
                           Event #{event.number || idx + 1}
                         </div>
-                        <h3 className="font-tech text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-tech-dark leading-tight">
+                        <h3 className="font-tech text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-tech-dark leading-tight">
                           {event.name}
                         </h3>
-                        <p className="text-base md:text-lg lg:text-xl text-tech-grey leading-relaxed max-w-lg mx-auto lg:mx-0">
+                        <p className="text-sm md:text-base lg:text-lg text-tech-grey leading-relaxed max-w-lg mx-auto lg:mx-0">
                           {event.short_description}
                         </p>
                         <div className="flex flex-wrap gap-2 justify-center lg:justify-start">
@@ -619,17 +626,18 @@ export default function Techfest() {
                         <div className="flex flex-col sm:flex-row gap-3 md:gap-4 pt-2 justify-center lg:justify-start">
                           <button
                             onClick={() => setRegisterEvent(event)}
-                            className="w-full sm:w-auto px-6 md:px-8 py-3 md:py-4 tech-gradient text-white font-tech font-semibold rounded-xl hover:shadow-lg transition-all transform hover:-translate-y-1 hover-lift text-sm md:text-base"
+                            className="w-full sm:w-auto px-6 md:px-8 py-3 md:py-4 bg-black hover:bg-gray-900 rounded-xl hover:shadow-lg transition-all transform hover:-translate-y-1 hover-lift text-sm md:text-base font-tech font-semibold"
+                            style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}
                             data-testid={`button-register-${event.id}`}
                           >
-                            Register Now
+                            <span className="text-white">Register Now</span>
                           </button>
                           <button
                             onClick={() => setLearnMoreEvent(event)}
-                            className="w-full sm:w-auto px-6 md:px-8 py-3 md:py-4 border-2 border-tech-blue text-tech-blue font-tech font-semibold rounded-xl hover:bg-tech-blue hover:text-white transition-all hover-lift text-sm md:text-base"
+                            className="w-full sm:w-auto px-6 md:px-8 py-3 md:py-4 bg-black hover:bg-gray-900 rounded-xl transition-all hover-lift text-sm md:text-base font-tech font-semibold border border-gray-700"
                             data-testid={`button-learn-more-${event.id}`}
                           >
-                            Learn More
+                            <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">Learn More</span>
                           </button>
                         </div>
                       </motion.div>
@@ -648,7 +656,7 @@ export default function Techfest() {
                         }}
                       >
                         {event.spline_right_url ? (
-                          <div className="w-80 h-80 sm:w-96 sm:h-96 md:w-[28rem] md:h-[28rem] lg:w-[32rem] lg:h-[32rem] spline-container rounded-xl overflow-hidden bg-transparent relative flex items-center justify-center">
+                          <div className="w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96 lg:w-[28rem] lg:h-[28rem] spline-container rounded-xl overflow-hidden bg-transparent relative flex items-center justify-center">
                             <DynamicSplineComponent
                               eventName={event.name}
                               fallbackUrl={event.spline_right_url}
@@ -656,7 +664,7 @@ export default function Techfest() {
                             />
                           </div>
                         ) : (
-                          <div className="w-80 h-80 sm:w-96 sm:h-96 md:w-[28rem] md:h-[28rem] lg:w-[32rem] lg:h-[32rem] bg-gradient-to-br from-tech-blue/30 to-tech-green/30 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                          <div className="w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96 lg:w-[28rem] lg:h-[28rem] bg-gradient-to-br from-tech-blue/30 to-tech-green/30 rounded-xl flex items-center justify-center backdrop-blur-sm">
                             <div className="text-center text-white">
                               <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-tech font-bold mb-1 md:mb-2">#{event.number || idx + 1}</div>
                               <div className="text-xs sm:text-sm md:text-base lg:text-lg font-tech uppercase tracking-wider">{event.category}</div>
