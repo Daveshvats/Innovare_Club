@@ -382,3 +382,23 @@ img {
 spline-viewer > *:last-child[style*="position: absolute"][style*="bottom"][style*="right"] {
   display: none !important;
 }
+
+/* Enhanced smooth scrolling for TechFest */
+#events-section {
+  scroll-behavior: smooth;
+  scroll-snap-type: y mandatory;
+}
+
+#events-section .snap-start {
+  scroll-snap-align: start;
+}
+
+/* Smooth motion for all animations */
+.motion-safe {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Enhanced scrolling smoothness */
+.scroll-smooth {
+  scroll-behavior: smooth;
+}

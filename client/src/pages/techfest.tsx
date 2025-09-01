@@ -1,6 +1,6 @@
 // src/pages/techfest.tsx
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 // import * as Spline from '@splinetool/viewer';
 import { HomeRobot } from '@/components/home-robot';
@@ -80,36 +80,62 @@ const DynamicSplineComponent: React.FC<{
 };
 
 const TechFestBackground: React.FC<{ className?: string }> = ({ className = "" }) => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const appRef = useRef<any>(null);
+
+  useEffect(() => {
+    let Application: any;
+    let app: any;
+
+    async function init() {
+      if (!canvasRef.current) return;
+
+      try {
+        // Dynamically import the Spline runtime ES module from CDN
+        // @ts-ignore - Dynamic import from CDN
+        const module = await import('https://unpkg.com/@splinetool/runtime@1.10.51/build/runtime.js');
+        Application = module.Application;
+
+        // Initialize the 3D app on the canvas
+        app = new Application(canvasRef.current);
+
+        // Load the specific Spline scene
+        await app.load('https://prod.spline.design/DC0L-NagpocfiwmY/scene.splinecode');
+
+        appRef.current = app;
+      } catch (error) {
+        console.error('Failed to load TechFest background scene:', error);
+      }
+    }
+
+    init();
+
+    // Cleanup on unmount
+    return () => {
+      if (appRef.current) {
+        try {
+          appRef.current.destroy();
+        } catch (error) {
+          console.error('Error destroying TechFest background app:', error);
+        }
+        appRef.current = null;
+      }
+    };
+  }, []);
+
   return (
-    <div className={`absolute inset-0 bg-gradient-to-br from-purple-400 via-pink-500 to-blue-500 ${className}`}>
-      <div 
-        className="w-full h-full opacity-80"
-        style={{ 
-          background: 'radial-gradient(circle at 30% 40%, rgba(120, 119, 198, 0.8) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.8) 0%, transparent 50%), radial-gradient(circle at 40% 80%, rgba(120, 200, 255, 0.8) 0%, transparent 50%)',
+    <div className={`fixed inset-0 w-full h-full overflow-hidden ${className}`} style={{ zIndex: -1 }}>
+      <canvas
+        ref={canvasRef}
+        className="w-full h-full block outline-none"
+        style={{
+          background: 'transparent',
+          display: 'block',
           position: 'absolute',
           top: 0,
           left: 0,
-          width: '100%',
-          height: '100%',
-          zIndex: -1,
           pointerEvents: 'none'
         }}
-      />
-      <iframe 
-        src="https://prod.spline.design/DC0L-NagpocfiwmY/scene.splinecode"
-        className="w-full h-full object-cover border-0 opacity-60"
-        style={{ 
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          zIndex: -1,
-          pointerEvents: 'none',
-          border: 'none',
-          mixBlendMode: 'multiply'
-        }}
-        title="TechFest 3D Background"
       />
     </div>
   );
@@ -417,6 +443,17 @@ export default function Techfest() {
     setSelectedCategory(categoryId);
     setShowCategoryDialog(false);
     setCurrentEventIndex(0);
+    
+    // Scroll to events section after category selection
+    setTimeout(() => {
+      const eventsSection = document.getElementById('events-section');
+      if (eventsSection) {
+        eventsSection.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'start' 
+        });
+      }
+    }, 100);
   };
 
   const handleBackToCategories = () => {
@@ -506,7 +543,7 @@ export default function Techfest() {
 
       {/* Events Display Section */}
       {selectedCategory && filteredEvents.length > 0 && (
-        <section className="min-h-screen">
+        <section id="events-section" className="min-h-screen" style={{ scrollBehavior: 'smooth' }}>
           {/* Category Header */}
           <div className="bg-gradient-to-br from-tech-light via-background to-gray-50 py-16">
             <div className="responsive-container">
@@ -557,7 +594,7 @@ export default function Techfest() {
                 <motion.div
                   key={event.id}
                   data-event-index={idx}
-                  className="min-h-screen snap-start bg-gradient-to-br from-purple-100/20 via-pink-50/20 to-blue-100/20 backdrop-blur-sm"
+                  className="min-h-screen snap-start bg-transparent"
                   initial={{ opacity: 0, y: 50 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, margin: "-50px" }}
@@ -610,7 +647,7 @@ export default function Techfest() {
 
                       {/* Event Visual */}
                       <motion.div 
-                        className="backdrop-blur-lg bg-white/10 border border-white/20 shadow-xl p-4 md:p-6 lg:p-8 rounded-2xl order-1 lg:order-2"
+                        className="backdrop-blur-md bg-white/5 border border-white/10 shadow-2xl p-4 md:p-6 lg:p-8 rounded-2xl order-1 lg:order-2"
                         initial={{ opacity: 0, x: 50 }}
                         whileInView={{ opacity: 1, x: 0 }}
                         viewport={{ once: true }}
@@ -657,7 +694,7 @@ export default function Techfest() {
       {selectedCategory && filteredEvents.length === 0 && (
         <section className="py-20 bg-gradient-to-br from-tech-light via-background to-gray-50">
           <div className="responsive-container text-center">
-            <div className="backdrop-blur-lg bg-white/10 border border-white/20 shadow-xl p-12 rounded-2xl max-w-2xl mx-auto">
+            <div className="backdrop-blur-md bg-white/5 border border-white/10 shadow-2xl p-12 rounded-2xl max-w-2xl mx-auto">
               <h3 className="font-tech text-2xl font-bold text-tech-dark mb-4">
                 No {categories.find(c => c.id === selectedCategory)?.name} Available
               </h3>
@@ -706,7 +743,7 @@ export default function Techfest() {
                   <button
                     key={category.id}
                     onClick={() => handleCategorySelect(category.id)}
-                    className="backdrop-blur-lg bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/30 shadow-xl hover:shadow-2xl p-6 rounded-xl transition-all hover-lift text-left group"
+                    className="backdrop-blur-md bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 shadow-xl hover:shadow-2xl p-6 rounded-xl transition-all hover-lift text-left group"
                     data-testid={`category-${category.id}`}
                   >
                     <div className="text-4xl mb-4 group-hover:scale-110 transition-transform">
