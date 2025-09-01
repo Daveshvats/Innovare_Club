@@ -507,7 +507,7 @@ export default function Techfest() {
           <TechFestBackground />
         </div>
         <div className="responsive-container py-12 sm:py-20 lg:py-24">
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center px-4 sm:px-6">
             <div className="text-center lg:text-left order-2 lg:order-1 space-y-6 lg:space-y-8">
               <div className="text-sm font-tech font-bold uppercase tracking-widest text-tech-blue mb-4 animate-slide-left">
                 Innovare presents
@@ -519,11 +519,11 @@ export default function Techfest() {
               <p className="text-lg sm:text-xl text-tech-grey max-w-2xl mx-auto lg:mx-0 animate-slide-left" style={{animationDelay: '0.2s'}}>
                 Showcase your skills, compete with the best, and push the boundaries of innovation across multiple disciplines.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start animate-bounce-in" style={{animationDelay: '0.4s'}}>
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start animate-bounce-in" style={{animationDelay: '0.4s'}}>
                 {!selectedCategory ? (
                   <button
                     onClick={() => setShowCategoryDialog(true)}
-                    className="px-8 py-4 tech-gradient text-white font-tech font-semibold rounded-xl hover:shadow-lg transition-all transform hover:-translate-y-1 hover-lift"
+                    className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 tech-gradient text-white font-tech font-semibold rounded-xl hover:shadow-lg transition-all transform hover:-translate-y-1 hover-lift text-base sm:text-lg"
                     data-testid="button-browse-events"
                   >
                     Browse Events
@@ -531,14 +531,14 @@ export default function Techfest() {
                 ) : (
                   <button
                     onClick={handleBackToCategories}
-                    className="px-8 py-4 border-2 border-tech-blue text-tech-blue font-tech font-semibold rounded-xl hover:bg-tech-blue hover:text-white transition-all hover-lift"
+                    className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 border-2 border-tech-blue text-tech-blue font-tech font-semibold rounded-xl hover:bg-tech-blue hover:text-white transition-all hover-lift text-base sm:text-lg"
                     data-testid="button-back-to-categories"
                   >
                     Back to Categories
                   </button>
                 )}
                 <button
-                  className="px-8 py-4 border-2 border-tech-blue text-tech-blue font-tech font-semibold rounded-xl hover:bg-tech-blue hover:text-white transition-all hover-lift"
+                  className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 border-2 border-tech-blue text-tech-blue font-tech font-semibold rounded-xl hover:bg-tech-blue hover:text-white transition-all hover-lift text-base sm:text-lg"
                   data-testid="button-learn-more"
                 >
                   Learn More
@@ -746,10 +746,10 @@ export default function Techfest() {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-background rounded-2xl p-8 max-w-4xl w-full mx-4 shadow-2xl border border-border"
+              className="bg-background rounded-2xl p-4 sm:p-6 md:p-8 max-w-4xl w-full mx-4 shadow-2xl border border-border"
             >
-              <div className="text-center mb-8">
-                <h3 className="font-tech text-3xl font-bold text-tech-dark mb-4">
+              <div className="text-center mb-6 sm:mb-8">
+                <h3 className="font-tech text-xl sm:text-2xl md:text-3xl font-bold text-tech-dark mb-4">
                   Choose Your Category
                 </h3>
                 <p className="text-tech-grey">
@@ -757,18 +757,18 @@ export default function Techfest() {
                 </p>
               </div>
 
-              <div className="grid md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
                 {categories.map((category) => (
                   <button
                     key={category.id}
                     onClick={() => handleCategorySelect(category.id)}
-                    className="backdrop-blur-md bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 shadow-xl hover:shadow-2xl p-6 rounded-xl transition-all hover-lift text-left group"
+                    className="backdrop-blur-md bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 shadow-xl hover:shadow-2xl p-4 sm:p-6 rounded-xl transition-all hover-lift text-left group"
                     data-testid={`category-${category.id}`}
                   >
-                    <div className="text-4xl mb-4 group-hover:scale-110 transition-transform">
+                    <div className="text-2xl sm:text-3xl md:text-4xl mb-3 sm:mb-4 group-hover:scale-110 transition-transform">
                       {category.icon}
                     </div>
-                    <h4 className="font-tech text-xl font-bold text-tech-dark mb-2 group-hover:text-tech-blue transition-colors">
+                    <h4 className="font-tech text-lg sm:text-xl font-bold text-tech-dark mb-2 group-hover:text-tech-blue transition-colors">
                       {category.name}
                     </h4>
                     <p className="text-tech-grey text-sm leading-relaxed">
@@ -856,10 +856,10 @@ export default function Techfest() {
           <Modal onClose={() => setRegisterEvent(null)}>
             <form
               onSubmit={submitRegistration}
-              className="w-full max-w-lg rounded-2xl backdrop-blur-lg bg-white/10 border border-white/20 shadow-xl p-8"
+              className="w-full max-w-lg mx-4 sm:mx-auto rounded-2xl backdrop-blur-lg bg-white/95 dark:bg-gray-900/95 border border-gray-200 dark:border-gray-700 shadow-xl p-4 sm:p-6 md:p-8"
             >
-              <h2 className="mb-4 text-2xl font-tech font-bold text-tech-dark">{`Register: ${registerEvent.name}`}</h2>
-              <div className="mb-4 text-sm text-tech-grey">
+              <h2 className="mb-4 text-lg sm:text-xl md:text-2xl font-tech font-bold text-gray-900 dark:text-white">{`Register: ${registerEvent.name}`}</h2>
+              <div className="mb-4 text-sm text-gray-600 dark:text-gray-300">
                 Team size: {registerEvent.team_min}–{registerEvent.team_max}
               </div>
 
@@ -868,7 +868,7 @@ export default function Techfest() {
                 value={teamName}
                 onChange={(e) => setTeamName(e.target.value)}
                 placeholder="Team name"
-                className="mb-4 w-full rounded-lg border border-border bg-background px-3 py-2 text-foreground placeholder-muted-foreground focus:border-tech-blue focus:outline-none"
+                className="mb-4 w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-tech-blue focus:outline-none focus:ring-2 focus:ring-tech-blue/20"
                 required
                 data-testid="input-team-name"
               />
@@ -878,7 +878,7 @@ export default function Techfest() {
                 value={contactEmail}
                 onChange={(e) => setContactEmail(e.target.value)}
                 placeholder="Contact email"
-                className="mb-4 w-full rounded-lg border border-border bg-background px-3 py-2 text-foreground placeholder-muted-foreground focus:border-tech-blue focus:outline-none"
+                className="mb-4 w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-tech-blue focus:outline-none focus:ring-2 focus:ring-tech-blue/20"
                 required
                 data-testid="input-contact-email"
               />
@@ -886,8 +886,8 @@ export default function Techfest() {
               {/* Dynamic members */}
               <div className="mb-6">
                 <div className="mb-3 flex items-center justify-between">
-                  <span className="font-tech font-semibold text-tech-blue">Team Members</span>
-                  <div className="flex gap-2">
+                  <span className="font-tech font-semibold text-tech-blue dark:text-tech-green">Team Members</span>
+                  <div className="flex flex-col sm:flex-row gap-2">
                     <button
                       type="button"
                       onClick={() =>
@@ -918,7 +918,7 @@ export default function Techfest() {
                 </div>
 
                 {members.map((mem, idx) => (
-                  <div key={idx} className="mb-3 flex gap-2">
+                  <div key={idx} className="mb-3 flex flex-col sm:flex-row gap-2">
                     <input
                       type="text"
                       value={mem.name}
@@ -929,7 +929,7 @@ export default function Techfest() {
                         );
                       }}
                       placeholder={`Member ${idx + 1} name`}
-                      className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-foreground placeholder-muted-foreground focus:border-tech-blue focus:outline-none"
+                      className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-tech-blue focus:outline-none focus:ring-2 focus:ring-tech-blue/20"
                       required={idx < registerEvent.team_min}
                       data-testid={`input-member-name-${idx}`}
                     />
@@ -943,7 +943,7 @@ export default function Techfest() {
                         );
                       }}
                       placeholder="Email (optional)"
-                      className="w-48 rounded-lg border border-border bg-background px-3 py-2 text-foreground placeholder-muted-foreground focus:border-tech-blue focus:outline-none"
+                      className="w-full sm:w-48 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-tech-blue focus:outline-none focus:ring-2 focus:ring-tech-blue/20"
                       data-testid={`input-member-email-${idx}`}
                     />
                   </div>
@@ -954,7 +954,7 @@ export default function Techfest() {
                 <button
                   type="button"
                   onClick={() => setRegisterEvent(null)}
-                  className="flex-1 rounded-lg border border-border px-4 py-3 text-foreground hover:bg-muted transition-colors"
+                  className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-3 text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                   data-testid="button-cancel-registration"
                 >
                   Cancel

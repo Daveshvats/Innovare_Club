@@ -139,7 +139,7 @@ export const technofest = pgTable("technofest", {
   updated_at: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
-export const techfestRegistrations = pgTable("registrations", {
+export const techfestRegistrations = pgTable("techfest_registrations", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   technofestId: uuid("technofest_id").notNull().references(() => technofest.id, { onDelete: "cascade" }),
   teamName: text("team_name").notNull(),
