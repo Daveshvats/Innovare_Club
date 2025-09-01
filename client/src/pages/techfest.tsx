@@ -211,6 +211,7 @@ export default function Techfest() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentEventIndex, setCurrentEventIndex] = useState(0);
+  const [scrollY, setScrollY] = useState(0);
 
   // Registration state
   const [teamName, setTeamName] = useState('');
@@ -289,6 +290,13 @@ export default function Techfest() {
         setLoading(false);
       }
     })();
+  }, []);
+
+  // Parallax scroll effect
+  useEffect(() => {
+    const handleScroll = () => setScrollY(window.scrollY);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   // Filter events based on selected category (using database category field)
@@ -579,6 +587,10 @@ export default function Techfest() {
                         whileInView={{ opacity: 1, x: 0 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.6, delay: 0.3 }}
+                        style={{
+                          transform: `translateY(${scrollY * 0.08 * (idx + 1)}px)`,
+                          transition: 'transform 0.1s ease-out'
+                        }}
                       >
                         <div className="text-xs md:text-sm font-tech font-bold uppercase tracking-widest text-tech-blue text-center lg:text-left">
                           Event #{event.number || idx + 1}
@@ -622,9 +634,13 @@ export default function Techfest() {
                         whileInView={{ opacity: 1, x: 0 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.6, delay: 0.4 }}
+                        style={{
+                          transform: `translateY(${scrollY * 0.12 * (idx + 1)}px)`,
+                          transition: 'transform 0.1s ease-out'
+                        }}
                       >
                         {event.spline_right_url ? (
-                          <div className="aspect-square spline-container rounded-xl overflow-hidden bg-transparent relative flex items-center justify-center">
+                          <div className="w-full h-80 sm:h-96 md:h-[28rem] lg:h-[32rem] xl:h-[36rem] spline-container rounded-xl overflow-hidden bg-transparent relative flex items-center justify-center">
                             <DynamicSplineComponent
                               eventName={event.name}
                               fallbackUrl={event.spline_right_url}
@@ -632,7 +648,7 @@ export default function Techfest() {
                             />
                           </div>
                         ) : (
-                          <div className="aspect-square bg-gradient-to-br from-tech-blue/30 to-tech-green/30 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                          <div className="w-full h-80 sm:h-96 md:h-[28rem] lg:h-[32rem] xl:h-[36rem] bg-gradient-to-br from-tech-blue/30 to-tech-green/30 rounded-xl flex items-center justify-center backdrop-blur-sm">
                             <div className="text-center text-white">
                               <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-tech font-bold mb-1 md:mb-2">#{event.number || idx + 1}</div>
                               <div className="text-xs sm:text-sm md:text-base lg:text-lg font-tech uppercase tracking-wider">{event.category}</div>
