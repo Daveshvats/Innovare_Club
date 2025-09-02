@@ -5,8 +5,7 @@ services:
     env: node
     region: oregon
     plan: free
-    buildCommand: npm install &&npm install vite --save && npx vite build && npx esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
-    startCommand: vite preview
+    buildCommand: npm install --include=dev && npm run build
     healthCheckPath: /
     envVars:
       - key: NODE_ENV
