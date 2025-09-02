@@ -1,0 +1,35 @@
+#render.yaml
+services:
+  - type: web
+    name: techfest-website
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        value: postgresql://neondb_owner:npg_pvtL5KdhFsT6@ep-divine-night-af04elep.c-2.us-west-2.aws.neon.tech/neondb?sslmode=require
+      - key: PGDATABASE
+        value: neondb
+      - key: PGHOST
+        value: ep-divine-night-af04elep.c-2.us-west-2.aws.neon.tech
+      - key: PGPORT
+        value: 5432
+      - key: PGUSER
+        value: neondb_owner
+      - key: PGPASSWORD
+        value: npg_pvtL5KdhFsT6
+      - key: SESSION_SECRET
+        value: gjoRxMBOexiPnoXJ8JlRBm31tAgAsTYeda//iTCq3FMNdiWZuAmfBuLFmycpsjJ/1Vi0m26XBojPX9alWaUmfQ==
+      - key: PORT
+        value: 5000
+      - key: NEXTAUTH_SECRET
+        value: gjoRxMBOexiPnoXJ8JlRBm31tAgAsTYeda//iTCq3FMNdiWZuAmfBuLFmycpsjJ/1Vi0m26XBojPX9alWaUmfQ==
+      - key: NEXTAUTH_URL
+        value: https://techfest-website.onrender.com
+
+# No need for the databases section since you're using Neon DB
