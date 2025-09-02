@@ -50,6 +50,7 @@ import {
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { eq, and, desc } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 
 // Conditionally import database only when needed
 let db: any;
@@ -87,6 +88,7 @@ export interface IStorage {
   getRegistrationsByEvent(eventId: string): Promise<Registration[]>;
   createRegistration(registration: InsertRegistration): Promise<Registration>;
   updateRegistrationStatus(id: string, status: string): Promise<Registration | undefined>;
+  deleteRegistration(id: string): Promise<boolean>;
 
   // About Content
   getAboutContent(): Promise<AboutContent[]>;
@@ -155,20 +157,26 @@ export interface IStorage {
 
   // TECHNOFEST REGISTRATIONS
   getTechfestRegistrations(): Promise<TechfestRegistration[]>;
+  getTechfestRegistrationsWithTeamCounts(): Promise<(TechfestRegistration & { memberCount: number })[]>;
   getTechfestRegistration(id: string): Promise<TechfestRegistration | undefined>;
   getTechfestRegistrationsByEvent(technofestId: string): Promise<TechfestRegistration[]>;
   createTechfestRegistration(registration: InsertTechfestRegistration): Promise<TechfestRegistration>;
   deleteTechfestRegistration(id: string): Promise<boolean>;
+  updateTechfestRegistrationStatus(id: string, status: string): Promise<TechfestRegistration | undefined>;
 
   // REGISTRATION MEMBERS
   getRegistrationMembers(registrationId: string): Promise<RegistrationMember[]>;
   createRegistrationMember(member: InsertRegistrationMember): Promise<RegistrationMember>;
   deleteRegistrationMember(id: string): Promise<boolean>;
   bulkCreateRegistrationMembers(members: InsertRegistrationMember[]): Promise<RegistrationMember[]>;
+  getAllRegistrationMembers(): Promise<RegistrationMember[]>;
 
   getSiteSetting(key: string): Promise<string | null>;
   setSiteSetting(key: string, value: string): Promise<void>;
   getAllSiteSettings(): Promise<SiteSettings[]>;
+
+  // Test database connection and UUID generation
+  testDatabaseConnection(): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
@@ -459,6 +467,10 @@ export class MemStorage implements IStorage {
     const updated = { ...existing, status };
     this.registrations.set(id, updated);
     return updated;
+  }
+
+  async deleteRegistration(id: string): Promise<boolean> {
+    return this.registrations.delete(id);
   }
 
   // About Content
@@ -777,6 +789,21 @@ export class MemStorage implements IStorage {
     return Array.from(this.techfestRegistrations.values());
   }
 
+  async getTechfestRegistrationsWithTeamCounts(): Promise<(TechfestRegistration & { memberCount: number })[]> {
+    const registrations = Array.from(this.techfestRegistrations.values());
+    const memberCounts = Array.from(this.registrationMembers.values()).reduce((acc, member) => {
+      if (member.registrationId) {
+        acc[member.registrationId] = (acc[member.registrationId] || 0) + 1;
+      }
+      return acc;
+    }, {});
+
+    return registrations.map(registration => {
+      const memberCount = memberCounts[registration.id] || 0;
+      return { ...registration, memberCount: memberCount + 1 }; // +1 for team leader
+    });
+  }
+
   async getTechfestRegistration(id: string): Promise<TechfestRegistration | undefined> {
     return this.techfestRegistrations.get(id);
   }
@@ -800,9 +827,21 @@ export class MemStorage implements IStorage {
     return this.techfestRegistrations.delete(id);
   }
 
+  async updateTechfestRegistrationStatus(id: string, status: string): Promise<TechfestRegistration | undefined> {
+    const existing = this.techfestRegistrations.get(id);
+    if (!existing) return undefined;
+    const updated = { ...existing, status };
+    this.techfestRegistrations.set(id, updated);
+    return updated;
+  }
+
   // REGISTRATION MEMBER METHODS
   async getRegistrationMembers(registrationId: string): Promise<RegistrationMember[]> {
     return Array.from(this.registrationMembers.values()).filter(member => member.registrationId === registrationId);
+  }
+
+  async getAllRegistrationMembers(): Promise<RegistrationMember[]> {
+    return Array.from(this.registrationMembers.values());
   }
 
   async createRegistrationMember(member: InsertRegistrationMember): Promise<RegistrationMember> {
@@ -843,6 +882,29 @@ export class MemStorage implements IStorage {
 
   async getAllSiteSettings(): Promise<SiteSettings[]> {
     return Array.from(this.siteSettings.values());
+  }
+
+  // Test database connection and UUID generation
+  async testDatabaseConnection(): Promise<boolean> {
+    try {
+      if (!db) {
+        console.error("Database not initialized");
+        return false;
+      }
+      
+      // Test a simple query
+      const result = await db.select().from(techfestRegistrations).limit(1);
+      console.log("Database connection test successful");
+      
+      // Test UUID generation
+      const testId = randomUUID();
+      console.log("UUID generation test successful:", testId);
+      
+      return true;
+    } catch (error) {
+      console.error("Database connection test failed:", error);
+      return false;
+    }
   }
 }
 
@@ -1129,6 +1191,22 @@ export class DatabaseStorage implements IStorage {
       .update(registrations)
       .set({ status })
       .where(eq(registrations.id, id))
+      .returning();
+    return updated || undefined;
+  }
+
+  async deleteRegistration(id: string): Promise<boolean> {
+    const result = await db
+      .delete(registrations)
+      .where(eq(registrations.id, id));
+    return result.rowCount > 0;
+  }
+
+  async updateTechfestRegistrationStatus(id: string, status: string): Promise<TechfestRegistration | undefined> {
+    const [updated] = await db
+      .update(techfestRegistrations)
+      .set({ status })
+      .where(eq(techfestRegistrations.id, id))
       .returning();
     return updated || undefined;
   }
@@ -1545,6 +1623,22 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(techfestRegistrations);
   }
 
+  async getTechfestRegistrationsWithTeamCounts(): Promise<(TechfestRegistration & { memberCount: number })[]> {
+    const registrations = await db.select().from(techfestRegistrations);
+    const memberCounts = await db
+      .select({
+        registrationId: registrationMembers.registrationId,
+        count: sql<number>`count(*)::int`
+      })
+      .from(registrationMembers)
+      .groupBy(registrationMembers.registrationId);
+
+    return registrations.map(registration => {
+      const memberCount = memberCounts.find(mc => mc.registrationId === registration.id)?.count || 0;
+      return { ...registration, memberCount: memberCount + 1 }; // +1 for team leader
+    });
+  }
+
   async getTechfestRegistration(id: string): Promise<TechfestRegistration | undefined> {
     const [registration] = await db.select().from(techfestRegistrations).where(eq(techfestRegistrations.id, id));
     return registration || undefined;
@@ -1555,18 +1649,45 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createTechfestRegistration(registration: InsertTechfestRegistration): Promise<TechfestRegistration> {
-    const [newRegistration] = await db
-      .insert(techfestRegistrations)
-      .values({
-        ...registration,
-        createdAt: new Date(),
-      })
-      .returning();
-    return newRegistration;
-  }
-
-  async getTechfestRegistrations(): Promise<TechfestRegistration[]> {
-    return await db.select().from(techfestRegistrations);
+    try {
+      // Check if database is available
+      if (!db) {
+        throw new Error("Database connection not available");
+      }
+      
+      // Generate UUID in application layer to avoid database UUID generation issues
+      const registrationId = randomUUID();
+      console.log("Generated registration ID:", registrationId);
+      
+      const [newRegistration] = await db
+        .insert(techfestRegistrations)
+        .values({
+          ...registration,
+          id: registrationId,
+          createdAt: new Date(),
+        })
+        .returning();
+      
+      console.log("Database returned registration:", newRegistration);
+      
+      // Ensure the ID is properly generated and valid
+      if (!newRegistration || !newRegistration.id) {
+        throw new Error("Failed to generate registration ID");
+      }
+      
+      // Validate UUID format
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(newRegistration.id)) {
+        console.error("Invalid UUID format returned:", newRegistration.id);
+        throw new Error("Invalid UUID generated for registration");
+      }
+      
+      console.log("Registration created successfully with ID:", newRegistration.id);
+      return newRegistration;
+    } catch (error) {
+      console.error("Error creating techfest registration:", error);
+      throw error;
+    }
   }
 
   async deleteTechfestRegistration(id: string): Promise<boolean> {
@@ -1574,9 +1695,22 @@ export class DatabaseStorage implements IStorage {
     return (result.rowCount || 0) > 0;
   }
 
+  async updateTechfestRegistrationStatus(id: string, status: string): Promise<TechfestRegistration | undefined> {
+    const [updated] = await db
+      .update(techfestRegistrations)
+      .set({ status })
+      .where(eq(techfestRegistrations.id, id))
+      .returning();
+    return updated || undefined;
+  }
+
   // REGISTRATION MEMBER METHODS
   async getRegistrationMembers(registrationId: string): Promise<RegistrationMember[]> {
     return await db.select().from(registrationMembers).where(eq(registrationMembers.registrationId, registrationId));
+  }
+
+  async getAllRegistrationMembers(): Promise<RegistrationMember[]> {
+    return await db.select().from(registrationMembers);
   }
 
   async createRegistrationMember(member: InsertRegistrationMember): Promise<RegistrationMember> {
@@ -1593,11 +1727,22 @@ export class DatabaseStorage implements IStorage {
   }
 
   async bulkCreateRegistrationMembers(members: InsertRegistrationMember[]): Promise<RegistrationMember[]> {
-    const createdMembers = await db
-      .insert(registrationMembers)
-      .values(members)
-      .returning();
-    return createdMembers;
+    try {
+      console.log("Creating registration members:", members);
+      console.log("First member registrationId:", members[0]?.registrationId);
+      
+      const createdMembers = await db
+        .insert(registrationMembers)
+        .values(members)
+        .returning();
+      
+      console.log("Successfully created members:", createdMembers.length);
+      return createdMembers;
+    } catch (error) {
+      console.error("Error in bulkCreateRegistrationMembers:", error);
+      console.error("Members data:", members);
+      throw error;
+    }
   }
 
   async getSiteSetting(key: string): Promise<string | null> {
@@ -1617,6 +1762,29 @@ export class DatabaseStorage implements IStorage {
 
   async getAllSiteSettings(): Promise<SiteSettings[]> {
     return await db.select().from(siteSettings);
+  }
+
+  // Test database connection and UUID generation
+  async testDatabaseConnection(): Promise<boolean> {
+    try {
+      if (!db) {
+        console.error("Database not initialized");
+        return false;
+      }
+      
+      // Test a simple query
+      const result = await db.select().from(techfestRegistrations).limit(1);
+      console.log("Database connection test successful");
+      
+      // Test UUID generation
+      const testId = randomUUID();
+      console.log("UUID generation test successful:", testId);
+      
+      return true;
+    } catch (error) {
+      console.error("Database connection test failed:", error);
+      return false;
+    }
   }
 }
 

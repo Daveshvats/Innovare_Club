@@ -12,4 +12,8 @@ if (!process.env.DATABASE_URL) {
 }
 
 export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+
+// Ensure UUID extension is enabled
+pool.query('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"').catch(console.error);
+
 export const db = drizzle({ client: pool, schema });

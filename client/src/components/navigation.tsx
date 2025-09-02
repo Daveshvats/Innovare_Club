@@ -12,7 +12,7 @@ export const Navigation = memo(function Navigation() {
   const isMobile = useIsMobile();
   const { user, isAuthenticated, logout } = useAuth();
 
-  // The new order: Events, About Us, NavbarRobot, Community, Gallery
+  // The new order: Events, About Us, NavbarRobot, Tech Events, Community, Gallery
   const navItems = [
     { name: "Events", href: "/events" },
     { name: "About Us", href: "/about" },

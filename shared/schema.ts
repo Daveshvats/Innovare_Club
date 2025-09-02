@@ -146,6 +146,7 @@ export const techfestRegistrations = pgTable("techfest_registrations", {
   teamLeaderName: text("team_leader_name").notNull(),
   teamLeaderEmail: text("team_leader_email").notNull(),
   contactEmail: text("contact_email").notNull(),
+  status: varchar("status").default("pending"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

@@ -19,6 +19,14 @@ export async function apiRequest(
     headers["Content-Type"] = "application/json";
   }
   
+  // Add admin token for admin routes
+  if (url.includes('/api/admin/')) {
+    const adminToken = localStorage.getItem('adminToken');
+    if (adminToken) {
+      headers["Authorization"] = `Bearer ${adminToken}`;
+    }
+  }
+  
   if (options.headers) {
     Object.assign(headers, options.headers);
   }

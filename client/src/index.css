@@ -113,6 +113,10 @@
   .spline-container {
     position: relative;
     overflow: hidden;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+    will-change: transform;
   }
 
   .loading-overlay {
@@ -193,18 +197,89 @@
     }
   }
 
-  .spline-container {
-    position: relative;
-    overflow: hidden;
-    border-radius: 1rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
   .spline-cached {
     pointer-events: none;
     user-select: none;
+  }
+
+  /* Techfest page specific styles for smooth scrolling and stable elements */
+  .techfest-scroll-container {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+  
+  .techfest-scroll-container::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  .techfest-scroll-container::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .techfest-scroll-container::-webkit-scrollbar-thumb {
+    background: rgba(59, 130, 246, 0.3);
+    border-radius: 4px;
+  }
+  
+  .techfest-scroll-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(59, 130, 246, 0.5);
+  }
+  
+  /* Smooth scroll snap behavior */
+  .scroll-snap-smooth {
+    scroll-snap-type: y proximity;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Prevent layout shifts during scroll */
+  .scroll-stable {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    will-change: auto;
+  }
+  
+  /* Hardware acceleration for smooth scrolling */
+  .hardware-accelerated {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+    will-change: transform;
+  }
+  
+  /* Optimize scroll performance */
+  .scroll-optimized {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    scroll-behavior: smooth;
+  }
+  
+  /* Prevent motion sickness and improve performance */
+  @media (prefers-reduced-motion: reduce) {
+    .scroll-snap-smooth {
+      scroll-snap-type: none;
+    }
+    
+    .motion-reduced {
+      transition: none !important;
+      animation: none !important;
+    }
+  }
+  
+  /* Consistent button sizing for techfest events */
+  .techfest-event-button {
+    min-width: 140px;
+    height: 44px;
+    padding: 12px 24px;
+    font-size: 14px;
+    line-height: 1.25;
+    white-space: nowrap;
+  }
+  
+  .techfest-event-button-container {
+    gap: 12px;
+    padding-top: 8px;
   }
 }
 

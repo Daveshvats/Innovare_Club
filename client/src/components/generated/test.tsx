@@ -25,7 +25,7 @@ export const Test = memo(function Test({ className = "" }: TestProps) {
         app = new Application(canvasRef.current);
 
         // Load the Spline scene for test
-        await app.load('https://prod.spline.design/N5KWfoFEi1dBayTl/scene.splinecode');
+        await app.load('https://prod.spline.design/igDIeIuXWbuegzCZ/scene.splinecode');
 
         appRef.current = app;
       } catch (error) {

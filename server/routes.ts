@@ -324,29 +324,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Admin APIs
+  // Get all registrations (admin)
   app.get("/api/admin/registrations", requireAuth, async (req, res) => {
     try {
       const [regularRegistrations, techfestRegistrations] = await Promise.all([
         storage.getRegistrations(),
-        storage.getTechfestRegistrations()
+        storage.getTechfestRegistrationsWithTeamCounts()
       ]);
       
       // Combine and format all registrations
       const allRegistrations = [
         ...regularRegistrations.map(reg => ({
           ...reg,
-          type: 'regular',
           eventType: 'Event'
         })),
         ...techfestRegistrations.map(reg => ({
           ...reg,
-          type: 'techfest',
           eventType: 'TechFest',
-          name: reg.teamName,
-          email: reg.contactEmail,
-          eventId: reg.technofestId,
-          status: 'pending' // TechFest registrations don't have status by default
+          eventId: reg.technofestId, // Map technofestId to eventId for consistency
+          name: reg.teamName, // Map teamName to name for consistency
+          email: reg.contactEmail, // Map contactEmail to email for consistency
+          // Preserve all team information
+          teamName: reg.teamName,
+          teamLeaderName: reg.teamLeaderName,
+          teamLeaderEmail: reg.teamLeaderEmail,
+          contactEmail: reg.contactEmail
         }))
       ];
       
@@ -359,57 +361,114 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.patch("/api/admin/registrations/:id/status", requireAuth, async (req, res) => {
     try {
-      const registration = await storage.updateRegistrationStatus(req.params.id, req.body.status);
+      const { status } = req.body;
+      
+      // Try to update as regular registration first
+      let registration = await storage.updateRegistrationStatus(req.params.id, status);
+      
+      // If not found, try as techfest registration
+      if (!registration) {
+        registration = await storage.updateTechfestRegistrationStatus(req.params.id, status);
+      }
+      
       if (!registration) {
         return res.status(404).json({ message: "Registration not found" });
       }
+      
       res.json(registration);
     } catch (error) {
+      console.error("Error updating registration status:", error);
       res.status(500).json({ message: "Failed to update registration" });
+    }
+  });
+
+  // Delete registration endpoint
+  app.delete("/api/admin/registrations/:id", requireAuth, async (req, res) => {
+    try {
+      // Try to delete as regular registration first
+      let deleted = await storage.deleteRegistration(req.params.id);
+      
+      // If not found in regular registrations, try techfest registrations
+      if (!deleted) {
+        deleted = await storage.deleteTechfestRegistration(req.params.id);
+      }
+      
+      if (!deleted) {
+        return res.status(404).json({ message: "Registration not found" });
+      }
+      
+      res.json({ message: "Registration deleted successfully" });
+    } catch (error) {
+      console.error('Failed to delete registration:', error);
+      res.status(500).json({ message: "Failed to delete registration" });
     }
   });
 
   app.get("/api/admin/registrations/csv", requireAuth, async (req, res) => {
     try {
-      const [regularRegistrations, techfestRegistrations] = await Promise.all([
+      const [regularRegistrations, techfestRegistrations, events, techfestEvents] = await Promise.all([
         storage.getRegistrations(),
-        storage.getTechfestRegistrations()
+        storage.getTechfestRegistrationsWithTeamCounts(),
+        storage.getEvents(),
+        storage.getTechnofestEvents()
       ]);
+      
+      // Create event name lookup maps
+      const eventNameMap = new Map(events.map(event => [event.id, event.title]));
+      const techfestEventNameMap = new Map(techfestEvents.map(event => [event.id, event.name]));
+      
+      // Get team members for techfest registrations
+      const techfestRegistrationsWithMembers = await Promise.all(
+        techfestRegistrations.map(async (reg) => {
+          const members = await storage.getRegistrationMembers(reg.id);
+          return { ...reg, members };
+        })
+      );
       
       // Combine and format all registrations for CSV
       const allRegistrations = [
         ...regularRegistrations.map(reg => ({
-          name: reg.name,
-          email: reg.email,
-          phone: reg.phone || '',
+          eventName: eventNameMap.get(reg.eventId) || 'Unknown Event',
+          name: reg.name || 'N/A',
+          email: reg.email || 'N/A',
+          phone: reg.phone || 'N/A',
           eventId: reg.eventId,
           eventType: 'Event',
           status: reg.status || 'pending',
           createdAt: reg.createdAt
         })),
-        ...techfestRegistrations.map(reg => ({
-          name: reg.teamName,
-          email: reg.contactEmail,
-          phone: reg.contactPhone || '',
+        ...techfestRegistrationsWithMembers.map(reg => ({
+          eventName: techfestEventNameMap.get(reg.technofestId) || 'Unknown TechFest Event',
+          teamName: reg.teamName || 'N/A',
+          teamLeaderName: reg.teamLeaderName || 'N/A',
+          teamLeaderEmail: reg.teamLeaderEmail || 'N/A',
+          contactEmail: reg.contactEmail || 'N/A',
+          members: reg.members.map(m => `${m.name || 'N/A'}${m.email ? ` (${m.email})` : ''}`).join('; '),
           eventId: reg.technofestId,
           eventType: 'TechFest',
-          status: 'pending',
+          status: reg.status || 'pending',
           createdAt: reg.createdAt
         }))
       ];
       
       // CSV header
-      const headers = ['Name', 'Email', 'Phone', 'Event ID', 'Event Type', 'Status', 'Registration Date'];
+      const headers = ['Event Name', 'Event Type', 'Team Name', 'Team Leader', 'Team Leader Email', 'Contact Email', 'Team Members', 'Name', 'Email', 'Phone', 'Event ID', 'Status', 'Registration Date'];
       let csvContent = headers.join(',') + '\n';
       
       // CSV rows
       for (const registration of allRegistrations) {
         const row = [
+          `"${registration.eventName || ''}"`,
+          `"${registration.eventType || ''}"`,
+          `"${registration.teamName || ''}"`,
+          `"${registration.teamLeaderName || ''}"`,
+          `"${registration.teamLeaderEmail || ''}"`,
+          `"${registration.contactEmail || ''}"`,
+          `"${registration.members || ''}"`,
           `"${registration.name || ''}"`,
           `"${registration.email || ''}"`,
           `"${registration.phone || ''}"`,
           `"${registration.eventId || ''}"`,
-          `"${registration.eventType || ''}"`,
           `"${registration.status || 'pending'}"`,
           `"${registration.createdAt ? new Date(registration.createdAt).toISOString().split('T')[0] : ''}"`
         ];
@@ -418,6 +477,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.setHeader('Content-Type', 'text/csv');
       res.setHeader('Content-Disposition', 'attachment; filename="registrations.csv"');
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
       res.send(csvContent);
     } catch (error) {
       console.error('CSV export error:', error);
@@ -958,16 +1020,45 @@ app.post("/api/technofest/:id/register", async (req, res) => {
       contactEmail: contactEmail.trim(),
     };
 
+    // Create the main registration
     const registration = await storage.createTechfestRegistration(registrationData);
     
+    // Validate the returned registration ID
+    if (!registration || !registration.id) {
+      throw new Error("Failed to create registration - no ID returned");
+    }
+    
+    // Additional UUID validation
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(registration.id)) {
+      throw new Error("Invalid registration ID generated");
+    }
+    
+    console.log("Created registration with ID:", registration.id);
+    
     // Create additional registration members (skip the first member as it's the leader)
-    const memberData = validMembers.slice(1).map(member => ({
-      registrationId: registration.id,
-      name: member.name.trim(),
-      email: member.email?.trim() || null,
-    }));
+    if (validMembers.length > 1) {
+      const memberData = validMembers.slice(1).map(member => ({
+        registrationId: registration.id,
+        name: member.name.trim(),
+        email: member.email?.trim() || null,
+      }));
 
-    await storage.bulkCreateRegistrationMembers(memberData);
+      console.log("Creating members with registration ID:", registration.id);
+      console.log("Member data to be created:", memberData);
+      
+      // Validate member data before sending to database
+      for (const member of memberData) {
+        if (!member.registrationId || typeof member.registrationId !== 'string') {
+          throw new Error(`Invalid registration ID for member: ${member.name}`);
+        }
+        if (!member.name || typeof member.name !== 'string') {
+          throw new Error(`Invalid name for member: ${member.registrationId}`);
+        }
+      }
+      
+      await storage.bulkCreateRegistrationMembers(memberData);
+    }
     
     res.json({ 
       success: true,
@@ -981,8 +1072,21 @@ app.post("/api/technofest/:id/register", async (req, res) => {
     });
   } catch (error: any) {
     console.error("Technofest registration error:", error);
+    
+    // Provide more specific error messages
+    let errorMessage = "Registration failed. Please try again.";
+    
+    if (error.message?.includes("UUID")) {
+      errorMessage = "Registration system error - please contact support.";
+    } else if (error.message?.includes("Failed to create registration")) {
+      errorMessage = "Unable to process registration - please try again.";
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+    
     res.status(500).json({ 
-      message: error.message || "Registration failed. Please try again." 
+      message: errorMessage,
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 });
@@ -1023,6 +1127,195 @@ app.get("/api/admin/settings", requireAuth, async (req, res) => {
     res.status(500).json({ message: "Failed to fetch settings" });
   }
 });
+
+// Test endpoint for debugging UUID generation
+app.get("/api/test/uuid", async (req, res) => {
+  try {
+    const { randomUUID } = await import("crypto");
+    const testId = randomUUID();
+    
+    res.json({ 
+      success: true, 
+      uuid: testId,
+      timestamp: new Date().toISOString(),
+      message: "UUID generation test successful"
+    });
+  } catch (error) {
+    console.error("UUID test error:", error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message,
+      message: "UUID generation test failed"
+    });
+  }
+});
+
+// Test database connection
+app.get("/api/test/db", async (req, res) => {
+  try {
+    const isConnected = await storage.testDatabaseConnection();
+    res.json({ 
+      success: true, 
+      connected: isConnected,
+      message: "Database connection test completed"
+    });
+  } catch (error) {
+    console.error("Database test error:", error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message,
+      message: "Database connection test failed"
+    });
+  }
+});
+
+  // Get team members for a specific techfest registration
+  app.get("/api/admin/registrations/:id/team-members", requireAuth, async (req, res) => {
+    try {
+      const teamMembers = await storage.getRegistrationMembers(req.params.id);
+      res.json(teamMembers);
+    } catch (error) {
+      console.error("Error fetching team members:", error);
+      res.status(500).json({ message: "Failed to fetch team members" });
+    }
+  });
+
+  // Get all team members for all techfest registrations
+  app.get("/api/admin/team-members", requireAuth, async (req, res) => {
+    try {
+      const allTeamMembers = await storage.getAllRegistrationMembers();
+      res.json(allTeamMembers);
+    } catch (error) {
+      console.error("Error fetching all team members:", error);
+      res.status(500).json({ message: "Failed to fetch team members" });
+    }
+  });
+
+  // Get registrations for a specific event
+  app.get("/api/admin/events/:eventId/registrations", requireAuth, async (req, res) => {
+    try {
+      const { eventId } = req.params;
+      const { eventType } = req.query;
+      
+      let registrations = [];
+      
+      if (eventType === 'TechFest') {
+        registrations = await storage.getTechfestRegistrationsWithTeamCounts();
+        registrations = registrations.filter(reg => reg.technofestId === eventId);
+        // Ensure all team information is preserved
+        registrations = registrations.map(reg => ({
+          ...reg,
+          eventType: 'TechFest',
+          eventId: reg.technofestId,
+          name: reg.teamName,
+          email: reg.contactEmail,
+          // Preserve all team information
+          teamName: reg.teamName,
+          teamLeaderName: reg.teamLeaderName,
+          teamLeaderEmail: reg.teamLeaderEmail,
+          contactEmail: reg.contactEmail
+        }));
+      } else {
+        registrations = await storage.getRegistrations();
+        registrations = registrations.filter(reg => reg.eventId === eventId);
+        registrations = registrations.map(reg => ({
+          ...reg,
+          eventType: 'Event'
+        }));
+      }
+      
+      res.json(registrations);
+    } catch (error) {
+      console.error("Error fetching event registrations:", error);
+      res.status(500).json({ message: "Failed to fetch event registrations" });
+    }
+  });
+
+  // Get CSV for a specific event
+  app.get("/api/admin/events/:eventId/registrations/csv", requireAuth, async (req, res) => {
+    try {
+      const { eventId } = req.params;
+      const { eventType } = req.query;
+      
+      let registrations = [];
+      
+      if (eventType === 'TechFest') {
+        registrations = await storage.getTechfestRegistrationsWithTeamCounts();
+        registrations = registrations.filter(reg => reg.technofestId === eventId);
+        
+        // Get event name
+        const event = await storage.getTechnofestEvent(eventId);
+        const eventName = event ? event.name : 'Unknown TechFest Event';
+        
+        // Get team members for each registration
+        const registrationsWithMembers = await Promise.all(
+          registrations.map(async (reg) => {
+            const members = await storage.getRegistrationMembers(reg.id);
+            return { ...reg, members };
+          })
+        );
+        
+        // Format for CSV
+        const csvData = registrationsWithMembers.map(reg => ({
+          eventName: eventName,
+          teamName: reg.teamName || 'N/A',
+          teamLeaderName: reg.teamLeaderName || 'N/A',
+          teamLeaderEmail: reg.teamLeaderEmail || 'N/A',
+          contactEmail: reg.contactEmail || 'N/A',
+          members: reg.members.map(m => `${m.name || 'N/A'}${m.email ? ` (${m.email})` : ''}`).join('; '),
+          status: reg.status || 'pending',
+          createdAt: reg.createdAt
+        }));
+        
+        const csvContent = [
+          'Event Name,Team Name,Team Leader,Team Leader Email,Contact Email,Team Members,Status,Registration Date',
+          ...csvData.map(row => 
+            `"${row.eventName}","${row.teamName}","${row.teamLeaderName}","${row.teamLeaderEmail}","${row.contactEmail}","${row.members}","${row.status}","${new Date(row.createdAt).toLocaleDateString()}"`
+          )
+        ].join('\n');
+        
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', `attachment; filename="techfest-${eventId}-registrations.csv"`);
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+        res.send(csvContent);
+      } else {
+        registrations = await storage.getRegistrations();
+        registrations = registrations.filter(reg => reg.eventId === eventId);
+        
+        // Get event name
+        const event = await storage.getEvent(eventId);
+        const eventName = event ? event.title : 'Unknown Event';
+        
+        const csvData = registrations.map(reg => ({
+          eventName: eventName,
+          name: reg.name || 'N/A',
+          email: reg.email || 'N/A',
+          phone: reg.phone || 'N/A',
+          status: reg.status || 'pending',
+          createdAt: reg.createdAt
+        }));
+        
+        const csvContent = [
+          'Event Name,Name,Email,Phone,Status,Registration Date',
+          ...csvData.map(row => 
+            `"${row.eventName}","${row.name}","${row.email}","${row.phone}","${row.status}","${new Date(row.createdAt).toLocaleDateString()}"`
+          )
+        ].join('\n');
+        
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', `attachment; filename="event-${eventId}-registrations.csv"`);
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+        res.send(csvContent);
+      }
+    } catch (error) {
+      console.error("CSV export error:", error);
+      res.status(500).json({ message: "Failed to export CSV" });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;
