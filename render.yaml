@@ -1,7 +1,7 @@
 #render.yaml
 services:
   - type: web
-    name: techfest-website
+    name: innovare-club
     env: node
     region: oregon
     plan: free
