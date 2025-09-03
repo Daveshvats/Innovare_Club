@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { HomeRobot } from "@/components/home-robot";
+import { SplineViewer } from "@/components/spline-viewer";
 import { Eye, EyeOff, User, Lock, Mail, ArrowLeft } from "lucide-react";
 
 export default function UserLogin() {
@@ -121,34 +122,44 @@ export default function UserLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-tech-light flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        {/* Back to Home */}
-        <Link href="/" className="inline-flex items-center text-tech-grey hover:text-tech-blue mb-6 transition-colors">
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Home
-        </Link>
-
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <HomeRobot className="w-20 h-20 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-tech-dark font-tech">Welcome to Innovare</h1>
-          <p className="text-tech-grey font-tech">Join our technical community</p>
+    <div className="min-h-screen bg-tech-light">
+      {/* Desktop Layout: Spline on left, form on right */}
+      <div className="hidden lg:flex min-h-screen">
+        {/* Left side - Robot */}
+        <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-tech-blue/10 to-purple-500/10">
+          <div className="w-full h-full flex items-center justify-center">
+            <div className="text-center">
+              <HomeRobot className="w-80 h-80 sm:w-96 sm:h-96 lg:w-[28rem] lg:h-[28rem] xl:w-[32rem] xl:h-[32rem] mx-auto mb-8" />
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-tech-dark font-tech mb-4">Welcome to Innovare</h2>
+              <p className="text-lg sm:text-xl lg:text-2xl text-tech-grey font-tech">Join our technical community</p>
+            </div>
+          </div>
         </div>
 
-        <Card className="bg-white border-tech-grey/20 shadow-lg">
-          <CardHeader className="text-center">
-            <CardTitle className="text-tech-dark font-tech">User Portal</CardTitle>
-            <CardDescription className="font-tech">
-              Sign in to your account or register for access
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-2 bg-tech-grey/10">
-                <TabsTrigger value="login" className="font-tech">Login</TabsTrigger>
-                <TabsTrigger value="register" className="font-tech">Register</TabsTrigger>
-              </TabsList>
+        {/* Right side - Form */}
+        <div className="flex-1 flex items-center justify-center p-8">
+          <div className="w-full max-w-md">
+            {/* Back to Home */}
+            <Link href="/" className="inline-flex items-center text-tech-grey hover:text-tech-blue mb-6 transition-colors">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Home
+            </Link>
+
+
+
+            <Card className="bg-white border-tech-grey/20 shadow-lg">
+              <CardHeader className="text-center">
+                <CardTitle className="text-tech-dark font-tech">User Portal</CardTitle>
+                <CardDescription className="font-tech">
+                  Sign in to your account or register for access
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                  <TabsList className="grid w-full grid-cols-2 bg-tech-grey/10">
+                    <TabsTrigger value="login" className="font-tech">Login</TabsTrigger>
+                    <TabsTrigger value="register" className="font-tech">Register</TabsTrigger>
+                  </TabsList>
 
               {/* Login Tab */}
               <TabsContent value="login" className="space-y-4 mt-6">
@@ -293,6 +304,184 @@ export default function UserLogin() {
             </Tabs>
           </CardContent>
         </Card>
+      </div>
+    </div>
+  </div>
+
+      {/* Mobile Layout: Same as before */}
+      <div className="lg:hidden flex items-center justify-center p-4 min-h-screen">
+        <div className="w-full max-w-md">
+          {/* Back to Home */}
+          <Link href="/" className="inline-flex items-center text-tech-grey hover:text-tech-blue mb-6 transition-colors">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Home
+          </Link>
+
+          {/* Logo */}
+          <div className="text-center mb-6 sm:mb-8">
+            <HomeRobot className="w-24 h-24 sm:w-32 sm:h-32 mx-auto mb-4" />
+            <h1 className="text-2xl sm:text-3xl font-bold text-tech-dark font-tech">Welcome to Innovare</h1>
+            <p className="text-tech-grey font-tech text-sm sm:text-base">Join our technical community</p>
+          </div>
+
+          <Card className="bg-white border-tech-grey/20 shadow-lg">
+            <CardHeader className="text-center">
+              <CardTitle className="text-tech-dark font-tech">User Portal</CardTitle>
+              <CardDescription className="font-tech">
+                Sign in to your account or register for access
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <TabsList className="grid w-full grid-cols-2 bg-tech-grey/10">
+                  <TabsTrigger value="login" className="font-tech">Login</TabsTrigger>
+                  <TabsTrigger value="register" className="font-tech">Register</TabsTrigger>
+                </TabsList>
+
+                {/* Login Tab */}
+                <TabsContent value="login" className="space-y-4 mt-6">
+                  <form onSubmit={handleLogin} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="login-username" className="font-tech">Username</Label>
+                      <div className="relative">
+                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-tech-grey" />
+                        <Input
+                          id="login-username"
+                          type="text"
+                          placeholder="Enter your username"
+                          value={loginData.username}
+                          onChange={(e) => setLoginData({ ...loginData, username: e.target.value })}
+                          className="pl-10 font-tech"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="login-password" className="font-tech">Password</Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-tech-grey" />
+                        <Input
+                          id="login-password"
+                          type={showPassword ? "text" : "password"}
+                          placeholder="Enter your password"
+                          value={loginData.password}
+                          onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
+                          className="pl-10 pr-10 font-tech"
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-tech-grey hover:text-tech-blue"
+                        >
+                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <Button
+                      type="submit"
+                      className="w-full bg-tech-blue hover:bg-tech-purple text-white font-tech"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? "Signing in..." : "Sign In"}
+                    </Button>
+                  </form>
+                </TabsContent>
+
+                {/* Register Tab */}
+                <TabsContent value="register" className="space-y-4 mt-6">
+                  <form onSubmit={handleRegister} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="register-username" className="font-tech">Username</Label>
+                      <div className="relative">
+                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-tech-grey" />
+                        <Input
+                          id="register-username"
+                          type="text"
+                          placeholder="Choose a username"
+                          value={registerData.username}
+                          onChange={(e) => setRegisterData({ ...registerData, username: e.target.value })}
+                          className="pl-10 font-tech"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="register-email" className="font-tech">Email</Label>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-tech-grey" />
+                        <Input
+                          id="register-email"
+                          type="email"
+                          placeholder="Enter your email"
+                          value={registerData.email}
+                          onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
+                          className="pl-10 font-tech"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="register-password" className="font-tech">Password</Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-tech-grey" />
+                        <Input
+                          id="register-password"
+                          type={showPassword ? "text" : "password"}
+                          placeholder="Choose a password"
+                          value={registerData.password}
+                          onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
+                          className="pl-10 pr-10 font-tech"
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-tech-grey hover:text-tech-blue"
+                        >
+                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="confirm-password" className="font-tech">Confirm Password</Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-tech-grey" />
+                        <Input
+                          id="confirm-password"
+                          type={showPassword ? "text" : "password"}
+                          placeholder="Confirm your password"
+                          value={registerData.confirmPassword}
+                          onChange={(e) => setRegisterData({ ...registerData, confirmPassword: e.target.value })}
+                          className="pl-10 font-tech"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <Button
+                      type="submit"
+                      className="w-full bg-tech-green hover:bg-tech-blue text-white font-tech"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? "Submitting..." : "Submit Registration"}
+                    </Button>
+                  </form>
+
+                  <div className="text-center text-sm text-tech-grey font-tech">
+                    <p>Registration requests are reviewed by administrators</p>
+                    <p>You will be notified once your account is approved</p>
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );

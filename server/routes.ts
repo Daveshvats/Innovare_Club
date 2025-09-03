@@ -48,6 +48,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Gallery
+  app.get("/api/gallery", async (req, res) => {
+    try {
+      const galleryImages = await storage.getGalleryImages();
+      res.json(galleryImages);
+    } catch (error) {
+      console.error("Gallery fetch error:", error);
+      res.status(500).json({ message: "Failed to fetch gallery images" });
+    }
+  });
+
   app.get("/api/events/:id", async (req, res) => {
     try {
       const event = await storage.getEvent(req.params.id);
@@ -60,6 +71,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Cleanup old events (auto-delete events older than 30 days)
+  app.delete("/api/events/cleanup", async (req, res) => {
+    try {
+      const deletedCount = await storage.cleanupOldEvents();
+      res.json({ message: `Cleaned up ${deletedCount} old events` });
+    } catch (error) {
+      console.error("Event cleanup error:", error);
+      res.status(500).json({ message: "Failed to cleanup old events" });
+    }
+  });
+
   app.get("/api/team", async (req, res) => {
     try {
       const members = await storage.getTeamMembers();
@@ -69,14 +91,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/gallery", async (req, res) => {
-    try {
-      const images = await storage.getGalleryImages();
-      res.json(images);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch gallery images" });
-    }
-  });
+
 
   app.get("/api/about", async (req, res) => {
     try {
@@ -100,6 +115,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(400).json({ message: "Invalid registration data" });
     }
   });
+
+
 
   // New Community APIs (Public read access)
   app.get("/api/polls", async (req, res) => {
@@ -487,14 +504,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Test endpoint for debugging dates
+  app.post("/api/test-date", async (req, res) => {
+    try {
+      console.log("Test date endpoint - received data:", req.body);
+      const testDate = new Date(req.body.date);
+      console.log("Test date parsed:", testDate);
+      console.log("Test date is valid:", !isNaN(testDate.getTime()));
+      console.log("Test date ISO string:", testDate.toISOString());
+      
+      res.json({
+        original: req.body.date,
+        parsed: testDate,
+        isValid: !isNaN(testDate.getTime()),
+        isoString: testDate.toISOString()
+      });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Admin Events
   app.post("/api/admin/events", requireAuth, async (req, res) => {
     try {
-      const validatedData = insertEventSchema.parse(req.body);
+      console.log("Creating event with data:", req.body);
+      console.log("Date field type:", typeof req.body.date);
+      console.log("Date field value:", req.body.date);
+      
+      // Convert date string to Date object if it's a string
+      const eventData = { ...req.body };
+      if (eventData.date) {
+        if (typeof eventData.date === 'string') {
+          const parsedDate = new Date(eventData.date);
+          if (isNaN(parsedDate.getTime())) {
+            throw new Error(`Invalid date format: ${eventData.date}`);
+          }
+          eventData.date = parsedDate;
+        } else if (typeof eventData.date === 'object' && eventData.date.$date) {
+          // Handle MongoDB-style date objects
+          eventData.date = new Date(eventData.date.$date);
+        }
+        console.log("Converted date:", eventData.date);
+        console.log("Converted date timestamp:", eventData.date.getTime());
+      }
+      
+      // If this event is being set as featured, unfeature all other events
+      if (eventData.featured === 1 || eventData.featured === true) {
+        console.log("Setting new featured event, unfeaturing others...");
+        await storage.unfeatureAllEvents();
+      }
+      
+      const validatedData = insertEventSchema.parse(eventData);
+      console.log("Validated data:", validatedData);
       const event = await storage.createEvent(validatedData);
+      console.log("Event created successfully:", event);
       res.json(event);
-    } catch (error) {
-      res.status(400).json({ message: "Invalid event data" });
+    } catch (error: any) {
+      console.error("Event creation error:", error);
+      if (error.name === 'ZodError') {
+        res.status(400).json({ 
+          message: "Invalid event data", 
+          errors: error.errors 
+        });
+      } else {
+        res.status(500).json({ 
+          message: "Failed to create event", 
+          error: error.message 
+        });
+      }
     }
   });
 
@@ -507,6 +584,145 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(event);
     } catch (error) {
       res.status(500).json({ message: "Failed to update event" });
+    }
+  });
+
+  app.put("/api/events/:id", async (req, res) => {
+    try {
+      console.log("Updating event:", req.params.id, "with data:", req.body);
+      const event = await storage.updateEvent(req.params.id, req.body);
+      if (!event) {
+        return res.status(404).json({ message: "Event not found" });
+      }
+      res.json(event);
+    } catch (error: any) {
+      console.error("Event update error:", error);
+      res.status(500).json({ 
+        message: "Failed to update event", 
+        error: error.message 
+      });
+    }
+  });
+
+  // Admin Event Management
+
+
+  app.patch("/api/admin/events/:id", requireAuth, async (req, res) => {
+    try {
+      console.log("Updating event:", req.params.id, "with data:", req.body);
+      console.log("Update date field type:", typeof req.body.date);
+      console.log("Update date field value:", req.body.date);
+      
+      // Convert date string to Date object if it's a string
+      const updateData = { ...req.body };
+      if (updateData.date) {
+        if (typeof updateData.date === 'string') {
+          const parsedDate = new Date(updateData.date);
+          if (isNaN(parsedDate.getTime())) {
+            throw new Error(`Invalid date format: ${updateData.date}`);
+          }
+          updateData.date = parsedDate;
+        } else if (typeof updateData.date === 'object' && updateData.date.$date) {
+          // Handle MongoDB-style date objects
+          updateData.date = new Date(updateData.date.$date);
+        }
+        console.log("Converted update date:", updateData.date);
+        console.log("Converted update date timestamp:", updateData.date.getTime());
+      }
+      
+      // If this event is being set as featured, unfeature all other events
+      if (updateData.featured === 1 || updateData.featured === true) {
+        console.log("Setting event as featured, unfeaturing others...");
+        await storage.unfeatureAllEvents();
+      }
+      
+      const event = await storage.updateEvent(req.params.id, updateData);
+      if (!event) {
+        return res.status(404).json({ message: "Event not found" });
+      }
+      console.log("Event updated successfully:", event);
+      res.json(event);
+    } catch (error: any) {
+      console.error("Event update error:", error);
+      res.status(500).json({ 
+        message: "Failed to update event", 
+        error: error.message 
+      });
+    }
+  });
+
+  app.delete("/api/admin/events/:id", requireAuth, async (req, res) => {
+    try {
+      const deleted = await storage.deleteEvent(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ message: "Event not found" });
+      }
+      res.json({ message: "Event deleted successfully" });
+    } catch (error: any) {
+      console.error("Event deletion error:", error);
+      res.status(500).json({ 
+        message: "Failed to delete event", 
+        error: error.message 
+      });
+    }
+  });
+
+  // Admin Gallery Routes
+  app.post("/api/admin/gallery", requireAuth, async (req, res) => {
+    try {
+      console.log("Creating gallery image:", req.body);
+      
+      const galleryImage = await storage.createGalleryImage(req.body);
+      console.log("Gallery image created successfully:", galleryImage);
+      res.json(galleryImage);
+    } catch (error: any) {
+      console.error("Gallery image creation error:", error);
+      if (error.name === 'ZodError') {
+        res.status(400).json({ 
+          message: "Validation error", 
+          errors: error.errors 
+        });
+      } else {
+        res.status(500).json({ 
+          message: "Failed to create gallery image", 
+          error: error.message 
+        });
+      }
+    }
+  });
+
+  app.patch("/api/admin/gallery/:id", requireAuth, async (req, res) => {
+    try {
+      console.log("Updating gallery image:", req.params.id, "with data:", req.body);
+      
+      const galleryImage = await storage.updateGalleryImage(req.params.id, req.body);
+      if (!galleryImage) {
+        return res.status(404).json({ message: "Gallery image not found" });
+      }
+      console.log("Gallery image updated successfully:", galleryImage);
+      res.json(galleryImage);
+    } catch (error: any) {
+      console.error("Gallery image update error:", error);
+      res.status(500).json({ 
+        message: "Failed to update gallery image", 
+        error: error.message 
+      });
+    }
+  });
+
+  app.delete("/api/admin/gallery/:id", requireAuth, async (req, res) => {
+    try {
+      const deleted = await storage.deleteGalleryImage(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ message: "Gallery image not found" });
+      }
+      res.json({ message: "Gallery image deleted successfully" });
+    } catch (error: any) {
+      console.error("Gallery image deletion error:", error);
+      res.status(500).json({ 
+        message: "Failed to delete gallery image", 
+        error: error.message 
+      });
     }
   });
 

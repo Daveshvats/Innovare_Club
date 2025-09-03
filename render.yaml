@@ -35,5 +35,3 @@ services:
         value: gjoRxMBOexiPnoXJ8JlRBm31tAgAsTYeda//iTCq3FMNdiWZuAmfBuLFmycpsjJ/1Vi0m26XBojPX9alWaUmfQ==
       - key: NEXTAUTH_URL
         value: https://innovare-club.onrender.com
-
-# No need for the databases section since you're using Neon DB

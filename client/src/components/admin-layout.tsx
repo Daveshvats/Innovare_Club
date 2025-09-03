@@ -12,10 +12,13 @@ import {
   MessageSquare,
   Vote,
   BookOpen,
-  Trophy
+  Trophy,
+  Menu,
+  X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { adminLogout } from "@/lib/api";
+import { useState } from "react";
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -24,6 +27,7 @@ interface AdminLayoutProps {
 export function AdminLayout({ children }: AdminLayoutProps) {
   const [location] = useLocation();
   const [, setLocation] = useLocation();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -48,8 +52,31 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
   return (
     <div className="min-h-screen bg-tech-light">
+      {/* Mobile menu button */}
+      <div className="lg:hidden fixed top-4 left-4 z-50">
+        <Button
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          variant="outline"
+          size="sm"
+          className="bg-white/90 backdrop-blur-sm"
+        >
+          {sidebarOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+        </Button>
+      </div>
+
+      {/* Mobile overlay */}
+      {sidebarOpen && (
+        <div 
+          className="lg:hidden fixed inset-0 z-40 bg-black/50"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <div className="fixed inset-y-0 left-0 z-50 w-64 bg-tech-dark shadow-lg">
+      <div className={cn(
+        "fixed inset-y-0 left-0 z-50 w-64 bg-tech-dark shadow-lg transform transition-transform duration-300 ease-in-out",
+        sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+      )}>
         <div className="flex h-full flex-col">
           {/* Logo */}
           <div className="flex h-16 shrink-0 items-center px-6 border-b border-tech-grey/20">
@@ -60,12 +87,13 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 px-4 pb-4 pt-5">
+          <nav className="flex-1 px-4 pb-4 pt-5 overflow-y-auto">
             <ul className="space-y-1">
               {navigation.map((item) => (
                 <li key={item.name}>
                   <Link
                     href={item.href}
+                    onClick={() => setSidebarOpen(false)}
                     className={cn(
                       "group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors font-tech",
                       location === item.href
@@ -105,8 +133,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       </div>
 
       {/* Main content */}
-      <div className="pl-64">
-        <main className="flex-1">
+      <div className="lg:pl-64">
+        <main className="flex-1 min-h-screen">
           {children}
         </main>
       </div>

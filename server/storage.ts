@@ -49,7 +49,7 @@ import {
   type InsertSiteSettings
 } from "@shared/schema";
 import { randomUUID } from "crypto";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, lt } from "drizzle-orm";
 import { sql } from "drizzle-orm";
 
 // Conditionally import database only when needed
@@ -63,6 +63,8 @@ export interface IStorage {
   createEvent(event: InsertEvent): Promise<Event>;
   updateEvent(id: string, event: Partial<InsertEvent>): Promise<Event | undefined>;
   deleteEvent(id: string): Promise<boolean>;
+  cleanupOldEvents(): Promise<number>;
+  unfeatureAllEvents(): Promise<void>; // Returns count of deleted events
 
   // Team Members
   getTeamMembers(): Promise<TeamMember[]>;
@@ -337,9 +339,12 @@ export class MemStorage implements IStorage {
       ...event, 
       id, 
       createdAt: new Date(),
-      tags: event.tags || null,
+      updatedAt: new Date(),
+      tags: event.tags || [],
       imageUrl: event.imageUrl || null,
-      featured: event.featured || null
+      featured: event.featured || false,
+      isActive: event.isActive !== undefined ? event.isActive : true,
+      currentParticipants: event.currentParticipants || 0
     };
     this.events.set(id, newEvent);
     return newEvent;
@@ -348,13 +353,40 @@ export class MemStorage implements IStorage {
   async updateEvent(id: string, event: Partial<InsertEvent>): Promise<Event | undefined> {
     const existing = this.events.get(id);
     if (!existing) return undefined;
-    const updated = { ...existing, ...event };
+    const updated = { 
+      ...existing, 
+      ...event, 
+      updatedAt: new Date() 
+    };
     this.events.set(id, updated);
     return updated;
   }
 
   async deleteEvent(id: string): Promise<boolean> {
     return this.events.delete(id);
+  }
+
+  async cleanupOldEvents(): Promise<number> {
+    // Delete events older than 30 days
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    let deletedCount = 0;
+    for (const [id, event] of this.events.entries()) {
+      if (event.date < thirtyDaysAgo && !event.isActive) {
+        this.events.delete(id);
+        deletedCount++;
+      }
+    }
+    return deletedCount;
+  }
+
+  async unfeatureAllEvents(): Promise<void> {
+    for (const [id, event] of this.events.entries()) {
+      if (event.featured) {
+        this.events.set(id, { ...event, featured: false, updatedAt: new Date() });
+      }
+    }
   }
 
   // Team Members
@@ -1032,40 +1064,160 @@ export class DatabaseStorage implements IStorage {
 
   // Events
   async getEvents(): Promise<Event[]> {
-    return await db.select().from(events);
+    const eventsList = await db.select().from(events);
+    
+    // Fix any invalid dates in the events
+    return eventsList.map(event => {
+      if (event.date && event.date.toString() === 'Invalid Date') {
+        console.log("Fixing invalid date in getEvents for event:", event.id);
+        // Set a default future date if the date is invalid
+        event.date = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days from now
+      }
+      return event;
+    });
   }
 
   async getEvent(id: string): Promise<Event | undefined> {
     const [event] = await db.select().from(events).where(eq(events.id, id));
+    
+    if (event && event.date && event.date.toString() === 'Invalid Date') {
+      console.log("Fixing invalid date in getEvent for event:", event.id);
+      // Set a default future date if the date is invalid
+      event.date = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days from now
+    }
+    
     return event || undefined;
   }
 
   async createEvent(event: InsertEvent): Promise<Event> {
+    console.log("DatabaseStorage createEvent - input:", event);
+    console.log("DatabaseStorage createEvent - date field:", event.date);
+    console.log("DatabaseStorage createEvent - date type:", typeof event.date);
+    
     const id = randomUUID();
     const [newEvent] = await db
       .insert(events)
       .values({ 
         ...event, 
         id,
-        tags: event.tags || null,
+        tags: event.tags || [],
         imageUrl: event.imageUrl || null,
-        featured: event.featured || null
+        featured: event.featured || false,
+        isActive: event.isActive !== undefined ? event.isActive : true,
+        currentParticipants: event.currentParticipants || 0,
+        registrationType: event.registrationType || "dialog",
+        registrationUrl: event.registrationUrl || null,
+        updatedAt: new Date()
       })
       .returning();
+    
+    console.log("DatabaseStorage createEvent - output:", newEvent);
+    console.log("DatabaseStorage createEvent - output date:", newEvent.date);
     return newEvent;
   }
 
   async updateEvent(id: string, event: Partial<InsertEvent>): Promise<Event | undefined> {
+    console.log("DatabaseStorage updateEvent - input:", event);
+    console.log("DatabaseStorage updateEvent - date field:", event.date);
+    console.log("DatabaseStorage updateEvent - date type:", typeof event.date);
+    
+    // Don't update date if it's invalid
+    const updateData: any = { 
+      ...event, 
+      updatedAt: new Date() 
+    };
+    
+    // Remove date from update if it's invalid
+    if (event.date && (event.date.toString() === 'Invalid Date' || isNaN(new Date(event.date).getTime()))) {
+      console.log("Removing invalid date from update");
+      delete updateData.date;
+    }
+    
     const [updated] = await db
       .update(events)
-      .set(event)
+      .set(updateData)
       .where(eq(events.id, id))
       .returning();
+    
+    console.log("DatabaseStorage updateEvent - output:", updated);
+    
+    // Fix invalid dates in the returned data
+    if (updated && updated.date && updated.date.toString() === 'Invalid Date') {
+      console.log("Fixing invalid date in returned data");
+      // Get the original event to preserve the valid date
+      const originalEvent = await this.getEvent(id);
+      if (originalEvent && originalEvent.date && originalEvent.date.toString() !== 'Invalid Date') {
+        updated.date = originalEvent.date;
+      } else {
+        // If no valid date exists, set a default future date
+        updated.date = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days from now
+      }
+    }
+    
     return updated || undefined;
   }
 
   async deleteEvent(id: string): Promise<boolean> {
     const result = await db.delete(events).where(eq(events.id, id));
+    return (result.rowCount || 0) > 0;
+  }
+
+  async cleanupOldEvents(): Promise<number> {
+    // Delete events older than 30 days
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    const result = await db.delete(events).where(
+      and(
+        lt(events.date, thirtyDaysAgo),
+        eq(events.isActive, false) // Only delete inactive old events
+      )
+    );
+    return result.rowCount || 0;
+  }
+
+  async unfeatureAllEvents(): Promise<void> {
+    await db.update(events)
+      .set({ 
+        featured: false, 
+        updatedAt: new Date() 
+      })
+      .where(eq(events.featured, true));
+  }
+
+  // Gallery Images
+  async getGalleryImages(): Promise<GalleryImage[]> {
+    return await db.select().from(galleryImages).orderBy(desc(galleryImages.createdAt));
+  }
+
+  async getGalleryImage(id: string): Promise<GalleryImage | undefined> {
+    const [image] = await db.select().from(galleryImages).where(eq(galleryImages.id, id));
+    return image || undefined;
+  }
+
+  async createGalleryImage(image: InsertGalleryImage): Promise<GalleryImage> {
+    const id = randomUUID();
+    const [newImage] = await db
+      .insert(galleryImages)
+      .values({ 
+        ...image, 
+        id
+      })
+      .returning();
+    return newImage;
+  }
+
+  async updateGalleryImage(id: string, image: Partial<InsertGalleryImage>): Promise<GalleryImage | undefined> {
+    const [updated] = await db
+      .update(galleryImages)
+      .set(image)
+      .where(eq(galleryImages.id, id))
+      .returning();
+    return updated || undefined;
+  }
+
+  async deleteGalleryImage(id: string): Promise<boolean> {
+    const result = await db.delete(galleryImages).where(eq(galleryImages.id, id));
     return (result.rowCount || 0) > 0;
   }
 

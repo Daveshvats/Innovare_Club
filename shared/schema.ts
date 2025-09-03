@@ -8,11 +8,19 @@ export const events = pgTable("events", {
   title: text("title").notNull(),
   description: text("description").notNull(),
   date: timestamp("date").notNull(),
+  time: text("time"), // Event time
   location: text("location").notNull(),
+  maxParticipants: integer("max_participants"), // Maximum number of participants
+  currentParticipants: integer("current_participants").default(0), // Current registered participants
   tags: text("tags").array(),
   imageUrl: text("image_url"),
-  featured: integer("featured").default(0),
+  featured: boolean("featured").default(false), // Boolean for featured events
+  isActive: boolean("is_active").default(true), // Whether event is active
+  registrationType: text("registration_type").default("dialog"), // "dialog" or "redirect"
+  registrationUrl: text("registration_url"), // URL to redirect to for registration
+  createdBy: varchar("created_by"), // Admin who created the event
   createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export const teamMembers = pgTable("team_members", {
@@ -167,6 +175,7 @@ export const siteSettings = pgTable("site_settings", {
 export const insertEventSchema = createInsertSchema(events).omit({
   id: true,
   createdAt: true,
+  updatedAt: true,
 });
 
 export const insertTeamMemberSchema = createInsertSchema(teamMembers).omit({

@@ -1,5 +1,8 @@
 import { apiRequest } from "./queryClient";
 
+// Re-export apiRequest for use in admin pages
+export { apiRequest };
+
 // Authentication helpers
 export const setAuthToken = (token: string) => {
   localStorage.setItem('adminToken', token);

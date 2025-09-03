@@ -4,7 +4,23 @@ import React, { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { HoverBorderGradient } from '@/components/ui/hover-border-gradient';
 
-// Dynamic component loader for generated Spline components
+// Helper function to detect if URL is a Spline URL
+const isSplineUrl = (url: string): boolean => {
+  return url.includes('spline.design') || url.includes('.splinecode');
+};
+
+// Helper function to detect if URL is a regular image
+const isImageUrl = (url: string): boolean => {
+  const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp'];
+  const lowerUrl = url.toLowerCase();
+  return imageExtensions.some(ext => lowerUrl.includes(ext)) || 
+         lowerUrl.includes('unsplash.com') || 
+         lowerUrl.includes('images.') ||
+         lowerUrl.includes('imgur.com') ||
+         lowerUrl.includes('cloudinary.com');
+};
+
+// Dynamic component loader for generated Spline components and image fallbacks
 const DynamicSplineComponent: React.FC<{ 
   eventName: string; 
   className?: string; 
@@ -16,6 +32,13 @@ const DynamicSplineComponent: React.FC<{
   useEffect(() => {
     const loadComponent = async () => {
       try {
+        // If it's a regular image URL, skip Spline component loading
+        if (fallbackUrl && isImageUrl(fallbackUrl)) {
+          console.log(`Detected image URL for ${eventName}, skipping Spline component loading`);
+          setIsLoading(false);
+          return;
+        }
+
         // Convert event name to component name (same logic as component generator)
         const componentName = eventName.toLowerCase().replace(/[^a-z0-9]/g, '-');
         
@@ -40,22 +63,69 @@ const DynamicSplineComponent: React.FC<{
     };
 
     loadComponent();
-  }, [eventName]);
+  }, [eventName, fallbackUrl]);
 
   if (isLoading) {
     return (
       <div className={`flex items-center justify-center ${className}`}>
-        <div className="animate-pulse text-muted-foreground">Loading 3D scene...</div>
+        <div className="animate-pulse text-muted-foreground">Loading...</div>
       </div>
     );
   }
 
+  // If we have a Spline component, use it
   if (SplineComponent) {
     return <SplineComponent className={className} />;
   }
 
-  // Fallback to iframe if component not found
+  // Handle fallback URL
   if (fallbackUrl) {
+    // If it's a regular image URL, render as image
+    if (isImageUrl(fallbackUrl)) {
+      return (
+        <div className={`w-full h-full ${className}`}>
+          <img 
+            src={fallbackUrl}
+            alt={`${eventName} visual`}
+            className="w-full h-full object-cover rounded-xl"
+            style={{ 
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              borderRadius: '0.75rem'
+            }}
+            loading="lazy"
+            onError={(e) => {
+              console.error('Failed to load image:', fallbackUrl);
+              // Fallback to a placeholder if image fails to load
+              e.currentTarget.style.display = 'none';
+            }}
+          />
+        </div>
+      );
+    }
+    
+    // If it's a Spline URL, render as iframe
+    if (isSplineUrl(fallbackUrl)) {
+      return (
+        <div className={`w-full h-full ${className}`}>
+          <iframe 
+            src={fallbackUrl}
+            className="w-full h-full border-0 rounded-xl"
+            style={{ 
+              width: '100%',
+              height: '100%',
+              border: 'none',
+              borderRadius: '0.75rem'
+            }}
+            title="3D Background"
+            loading="lazy"
+          />
+        </div>
+      );
+    }
+
+    // For any other URL, try as iframe first, then fallback to image
     return (
       <div className={`w-full h-full ${className}`}>
         <iframe 
@@ -67,8 +137,24 @@ const DynamicSplineComponent: React.FC<{
             border: 'none',
             borderRadius: '0.75rem'
           }}
-          title="3D Background"
+          title="Visual Content"
           loading="lazy"
+          onError={(e) => {
+            // If iframe fails, try as image
+            const iframe = e.currentTarget as HTMLIFrameElement;
+            const container = iframe.parentElement;
+            if (container) {
+              container.innerHTML = `
+                <img 
+                  src="${fallbackUrl}" 
+                  alt="Event visual" 
+                  class="w-full h-full object-cover rounded-xl"
+                  style="width: 100%; height: 100%; object-fit: cover; border-radius: 0.75rem;"
+                  loading="lazy"
+                />
+              `;
+            }
+          }}
         />
       </div>
     );

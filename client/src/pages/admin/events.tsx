@@ -1,13 +1,16 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { queryClient, apiRequest } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
+import { apiRequest } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Edit, Trash2, Calendar, MapPin } from "lucide-react";
+import { Plus, Edit, Trash2, Calendar, MapPin, Star } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -37,6 +40,8 @@ const eventSchema = z.object({
   imageUrl: z.string().optional(),
   tags: z.string().optional(),
   featured: z.boolean().optional(),
+  registrationType: z.enum(["dialog", "redirect"]).default("dialog"),
+  registrationUrl: z.string().optional(),
 });
 
 type EventFormData = z.infer<typeof eventSchema>;
@@ -44,11 +49,15 @@ type EventFormData = z.infer<typeof eventSchema>;
 export default function AdminEvents() {
   const [isOpen, setIsOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<any>(null);
+  const [showFeaturedWarning, setShowFeaturedWarning] = useState(false);
   const { toast } = useToast();
 
   const { data: events, isLoading } = useQuery({
     queryKey: ["/api/events"],
   });
+
+  // Check if there's already a featured event
+  const existingFeaturedEvent = events?.find((event: any) => event.featured === 1);
 
   const form = useForm<EventFormData>({
     resolver: zodResolver(eventSchema),
@@ -60,18 +69,25 @@ export default function AdminEvents() {
       imageUrl: "",
       tags: "",
       featured: false,
+      registrationType: "dialog",
+      registrationUrl: "",
     },
   });
 
   const createMutation = useMutation({
     mutationFn: async (data: EventFormData) => {
+      console.log("Frontend create data:", data);
+      console.log("Frontend date value:", data.date);
+      
       const eventData = {
         ...data,
-        date: new Date(data.date).toISOString(),
+        date: data.date ? new Date(data.date).toISOString() : new Date().toISOString(),
         tags: data.tags ? data.tags.split(",").map(tag => tag.trim()) : [],
         featured: data.featured ? 1 : 0,
       };
-      return await apiRequest("/api/events", "POST", eventData);
+      
+      console.log("Frontend processed data:", eventData);
+      return await apiRequest("/api/admin/events", "POST", eventData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/events"] });
@@ -94,13 +110,18 @@ export default function AdminEvents() {
 
   const updateMutation = useMutation({
     mutationFn: async (data: EventFormData) => {
+      console.log("Frontend update data:", data);
+      console.log("Frontend update date value:", data.date);
+      
       const eventData = {
         ...data,
-        date: new Date(data.date).toISOString(),
+        date: data.date ? new Date(data.date).toISOString() : new Date().toISOString(),
         tags: data.tags ? data.tags.split(",").map(tag => tag.trim()) : [],
         featured: data.featured ? 1 : 0,
       };
-      return await apiRequest(`/api/events/${editingEvent.id}`, "PATCH", eventData);
+      
+      console.log("Frontend processed update data:", eventData);
+      return await apiRequest(`/api/admin/events/${editingEvent.id}`, "PATCH", eventData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/events"] });
@@ -123,7 +144,7 @@ export default function AdminEvents() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      return await apiRequest(`/api/events/${id}`, "DELETE");
+      return await apiRequest(`/api/admin/events/${id}`, "DELETE");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/events"] });
@@ -151,6 +172,8 @@ export default function AdminEvents() {
       imageUrl: event.imageUrl || "",
       tags: event.tags ? event.tags.join(", ") : "",
       featured: event.featured === 1,
+      registrationType: event.registrationType || "dialog",
+      registrationUrl: event.registrationUrl || "",
     });
     setIsOpen(true);
   };
@@ -172,17 +195,18 @@ export default function AdminEvents() {
   const handleDialogClose = () => {
     setIsOpen(false);
     setEditingEvent(null);
+    setShowFeaturedWarning(false);
     form.reset();
   };
 
   if (isLoading) {
     return (
-      <div className="p-6 bg-tech-light min-h-screen">
+      <div className="p-4 sm:p-6 bg-tech-light min-h-screen">
         <div className="animate-pulse">
-          <div className="h-8 bg-tech-grey/20 rounded w-1/4 mb-6"></div>
+          <div className="h-6 sm:h-8 bg-tech-grey/20 rounded w-1/2 sm:w-1/4 mb-6"></div>
           <div className="grid gap-4">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="h-32 bg-tech-grey/20 rounded"></div>
+              <div key={i} className="h-24 sm:h-32 bg-tech-grey/20 rounded"></div>
             ))}
           </div>
         </div>
@@ -191,10 +215,10 @@ export default function AdminEvents() {
   }
 
   return (
-    <div className="p-6 space-y-6 bg-tech-light min-h-screen">
-      <div className="flex justify-between items-center">
+    <div className="p-4 sm:p-6 space-y-6 bg-tech-light min-h-screen">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold font-tech text-tech-dark">Events Management</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold font-tech text-tech-dark">Events Management</h1>
           <p className="text-tech-grey mt-2 font-tech">Create and manage club events</p>
         </div>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -329,6 +353,119 @@ export default function AdminEvents() {
                   )}
                 />
 
+                <FormField
+                  control={form.control}
+                  name="featured"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                      <FormControl>
+                        <Checkbox 
+                          checked={field.value} 
+                          onCheckedChange={(checked) => {
+                            field.onChange(checked);
+                            // Show warning if there's already a featured event and this is a new event
+                            if (checked && existingFeaturedEvent && !editingEvent) {
+                              setShowFeaturedWarning(true);
+                            }
+                          }}
+                          data-testid="checkbox-featured"
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel className="text-tech-dark font-tech flex items-center gap-2">
+                          <Star className="h-4 w-4 text-yellow-500" />
+                          Featured Event
+                        </FormLabel>
+                        <p className="text-sm text-tech-grey font-tech">
+                          Mark this event as featured to highlight it on the homepage
+                        </p>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+
+                {/* Featured Event Warning */}
+                {showFeaturedWarning && existingFeaturedEvent && (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <div className="flex items-start">
+                      <Star className="h-5 w-5 text-yellow-600 mt-0.5 mr-3" />
+                      <div>
+                        <h4 className="text-sm font-medium text-yellow-800 font-tech">
+                          Featured Event Warning
+                        </h4>
+                        <p className="text-sm text-yellow-700 font-tech mt-1">
+                          There is already a featured event: <strong>"{existingFeaturedEvent.title}"</strong>.
+                          Setting this event as featured will remove the featured status from the existing event.
+                        </p>
+                        <div className="flex gap-2 mt-3">
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setShowFeaturedWarning(false)}
+                            className="text-yellow-700 border-yellow-300 hover:bg-yellow-100"
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            onClick={() => setShowFeaturedWarning(false)}
+                            className="bg-yellow-600 hover:bg-yellow-700 text-white"
+                          >
+                            Continue
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <FormField
+                  control={form.control}
+                  name="registrationType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-tech-dark font-tech">Registration Type</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger className="border-tech-grey/30 focus:border-tech-blue font-tech">
+                            <SelectValue placeholder="Select registration type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="dialog">Registration Dialog</SelectItem>
+                          <SelectItem value="redirect">Redirect to Page</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {form.watch("registrationType") === "redirect" && (
+                  <FormField
+                    control={form.control}
+                    name="registrationUrl"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-tech-dark font-tech">Registration URL</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="/techfest or https://example.com/register" 
+                            className="border-tech-grey/30 focus:border-tech-blue font-tech"
+                            {...field} 
+                          />
+                        </FormControl>
+                        <p className="text-sm text-tech-grey font-tech">
+                          Enter the URL where users should be redirected for registration
+                        </p>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+
                 <DialogFooter>
                   <Button 
                     type="button" 
@@ -377,7 +514,8 @@ export default function AdminEvents() {
                         {event.location}
                       </div>
                       {event.featured === 1 && (
-                        <Badge variant="secondary" className="bg-tech-blue/10 text-tech-blue">
+                        <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 border-yellow-200">
+                          <Star className="h-3 w-3 mr-1" />
                           Featured
                         </Badge>
                       )}

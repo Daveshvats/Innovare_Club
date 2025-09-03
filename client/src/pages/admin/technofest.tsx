@@ -424,7 +424,7 @@ export default function AdminTechnofest() {
                       {event.splineRightUrl && (
                         <div className="flex items-center">
                           <Globe className="h-4 w-4 mr-1" />
-                          3D Model
+                          Visual Content
                         </div>
                       )}
                     </div>
@@ -619,15 +619,18 @@ export default function AdminTechnofest() {
               </div>
               
               <div>
-                <Label className="text-tech-dark font-tech">Spline 3D Model URL</Label>
+                <Label className="text-tech-dark font-tech">Visual URL (Spline 3D or Image)</Label>
                 <Input
                   type="url"
                   value={formData.splineRightUrl}
                   onChange={(e) => setFormData(prev => ({ ...prev, splineRightUrl: e.target.value }))}
-                  placeholder="https://prod.spline.design/..."
+                  placeholder="https://prod.spline.design/... or https://images.unsplash.com/..."
                   className="border-tech-grey/30 focus:border-tech-blue font-tech"
                   data-testid="input-spline-url"
                 />
+                <p className="text-xs text-tech-grey mt-1 font-tech">
+                  Supports Spline 3D models (.splinecode) or regular images (.jpg, .png, etc.)
+                </p>
               </div>
             </div>
 
@@ -761,7 +764,7 @@ export default function AdminTechnofest() {
                     className="font-tech"
                   >
                     <Globe className="h-4 w-4 mr-2" />
-                    View 3D Model
+                    View Visual
                   </Button>
                 )}
               </div>
