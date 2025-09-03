@@ -1,4 +1,3 @@
-#render.yaml
 services:
   - type: web
     name: innovare-club
@@ -6,10 +5,17 @@ services:
     region: oregon
     plan: free
     buildCommand: npm install --include=dev && npm run build
+    startCommand: npm start
     healthCheckPath: /
+    autoDeploy: true
     envVars:
       - key: NODE_ENV
         value: production
+      - key: PORT
+        value: 5000
+      - key: HOST
+        value: 0.0.0.0
+      # Database configuration - Replace with your actual Neon DB credentials
       - key: DATABASE_URL
         value: postgresql://neondb_owner:npg_pvtL5KdhFsT6@ep-divine-night-af04elep.c-2.us-west-2.aws.neon.tech/neondb?sslmode=require
       - key: PGDATABASE
@@ -22,10 +28,9 @@ services:
         value: neondb_owner
       - key: PGPASSWORD
         value: npg_pvtL5KdhFsT6
+      # Session and authentication secrets
       - key: SESSION_SECRET
         value: gjoRxMBOexiPnoXJ8JlRBm31tAgAsTYeda//iTCq3FMNdiWZuAmfBuLFmycpsjJ/1Vi0m26XBojPX9alWaUmfQ==
-      - key: PORT
-        value: 5000
       - key: NEXTAUTH_SECRET
         value: gjoRxMBOexiPnoXJ8JlRBm31tAgAsTYeda//iTCq3FMNdiWZuAmfBuLFmycpsjJ/1Vi0m26XBojPX9alWaUmfQ==
       - key: NEXTAUTH_URL
