@@ -18,7 +18,7 @@ import AdminLogin from "@/pages/admin/login";
 import AdminDashboard from "@/pages/admin/dashboard";
 import AdminEvents from "@/pages/admin/events";
 import AdminTeam from "@/pages/admin/team";
-import AdminGallery from "@/pages/admin/gallery";
+import AdminEventGallery from "@/pages/admin/event-gallery";
 import AdminRegistrations from "@/pages/admin/registrations";
 import AdminAbout from "@/pages/admin/about";
 import Community from "@/pages/community";
@@ -53,7 +53,7 @@ function Router() {
                 <Route path="/admin/events" component={AdminEvents} />
                 <Route path="/admin/technofest" component={AdminTechnofest} />
                 <Route path="/admin/team" component={AdminTeam} />
-                <Route path="/admin/gallery" component={AdminGallery} />
+                <Route path="/admin/event-gallery" component={AdminEventGallery} />
                 <Route path="/admin/registrations" component={AdminRegistrations} />
                 <Route path="/admin/polls" component={AdminPolls} />
               <Route path="/admin/announcements" component={AdminAnnouncements} />

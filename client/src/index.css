@@ -97,6 +97,41 @@
   html {
     scroll-behavior: smooth;
   }
+
+  /* Gallery modal styles - ensure full screen */
+  .gallery-modal {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    z-index: 9999 !important;
+    overflow: hidden !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    outline: none !important;
+  }
+
+  .gallery-modal img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    object-position: center;
+  }
+
+  /* Ensure modal breaks out of any container */
+  body.modal-open {
+    overflow: hidden !important;
+  }
+
+  .gallery-modal * {
+    box-sizing: border-box !important;
+  }
+
+
 }
 
 @layer components {
@@ -482,4 +517,13 @@ spline-viewer > *:last-child[style*="position: absolute"][style*="bottom"][style
 /* Enhanced scrolling smoothness */
 .scroll-smooth {
   scroll-behavior: smooth;
+}
+
+/* Hide scrollbar utility */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+  scrollbar-width: none;  /* Firefox */
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Safari and Chrome */
 }

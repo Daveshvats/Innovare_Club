@@ -1,30 +1,13 @@
 import { useScrollAnimation } from "@/hooks/use-scroll-animation";
 import { motion } from "framer-motion";
 import { Target, Eye, Heart } from "lucide-react";
-import { Team1 } from "@/components/team1";
-import { Team2 } from "@/components/team1 copy";
-import { Team3 } from "@/components/team3";
-import { Team4 } from "@/components/team4";
-import { Team5 } from "@/components/team5";
-import { Team6 } from "@/components/team6";
-import { Team7 } from "@/components/team7";
-import { Team8 } from "@/components/team8";
-import { TeamCarousel } from "@/components/team-carousel";
+import { TeamGrid } from "@/components/team-grid";
 export default function About() {
   const missionRef = useScrollAnimation();
   const teamRef = useScrollAnimation();
   const contactRef = useScrollAnimation();
 
-  const teamMembers = [
-    { name: "Sahil", position: "President", Avatar: Team1 },
-    { name: "Sakshi", position: "Vice President", Avatar: Team2 },
-    { name: "Deepanshu", position: "Co-Coordinator", Avatar: Team8 },
-    { name: "Saksam", position: "Technical Lead", Avatar: Team3 },
-    { name: "Simran", position: "Marketing Head", Avatar: Team6 },
-    { name: "Kalash", position: "Design Lead", Avatar: Team4 },
-    { name: "Chin", position: "Event Coordinator", Avatar: Team7 },
-    { name: "Kunjal", position: "Content Creator", Avatar: Team5 },
-  ];
+
 
 
 
@@ -108,9 +91,9 @@ export default function About() {
               </p>
             </div>
             
-            {/* Team Carousel */}
+            {/* Team Grid */}
             <div className="relative">
-              <TeamCarousel teamMembers={teamMembers} />
+              <TeamGrid />
             </div>
           </div>
         </div>

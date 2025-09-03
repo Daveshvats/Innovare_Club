@@ -81,7 +81,7 @@ export default function AdminEvents() {
       
       const eventData = {
         ...data,
-        date: data.date ? new Date(data.date).toISOString() : new Date().toISOString(),
+        date: data.date ? data.date : new Date().toISOString().split('T')[0],
         tags: data.tags ? data.tags.split(",").map(tag => tag.trim()) : [],
         featured: data.featured ? 1 : 0,
       };
@@ -115,7 +115,7 @@ export default function AdminEvents() {
       
       const eventData = {
         ...data,
-        date: data.date ? new Date(data.date).toISOString() : new Date().toISOString(),
+        date: data.date ? data.date : new Date().toISOString().split('T')[0],
         tags: data.tags ? data.tags.split(",").map(tag => tag.trim()) : [],
         featured: data.featured ? 1 : 0,
       };

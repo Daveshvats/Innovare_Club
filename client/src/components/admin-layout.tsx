@@ -46,7 +46,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     { name: 'Polls', href: '/admin/polls', icon: Vote },
     { name: 'Announcements', href: '/admin/announcements', icon: MessageSquare },
     { name: 'Courses', href: '/admin/courses', icon: BookOpen },
-    { name: 'Gallery', href: '/admin/gallery', icon: Image },
+    { name: 'Gallery', href: '/admin/event-gallery', icon: Image },
     { name: 'About Us', href: '/admin/about', icon: FileText },
   ];
 

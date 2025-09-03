@@ -7,7 +7,7 @@ export const events = pgTable("events", {
   id: varchar("id").primaryKey(),
   title: text("title").notNull(),
   description: text("description").notNull(),
-  date: timestamp("date").notNull(),
+  date: text("date").notNull(), // Store as YYYY-MM-DD format
   time: text("time"), // Event time
   location: text("location").notNull(),
   maxParticipants: integer("max_participants"), // Maximum number of participants
@@ -16,6 +16,7 @@ export const events = pgTable("events", {
   imageUrl: text("image_url"),
   featured: boolean("featured").default(false), // Boolean for featured events
   isActive: boolean("is_active").default(true), // Whether event is active
+  isGalleryOnly: boolean("is_gallery_only").default(false), // Gallery-only events (don't show on events page)
   registrationType: text("registration_type").default("dialog"), // "dialog" or "redirect"
   registrationUrl: text("registration_url"), // URL to redirect to for registration
   createdBy: varchar("created_by"), // Admin who created the event
@@ -26,16 +27,21 @@ export const events = pgTable("events", {
 export const teamMembers = pgTable("team_members", {
   id: varchar("id").primaryKey(),
   name: text("name").notNull(),
+  position: text("position").notNull(),
   description: text("description").notNull(),
   imageUrl: text("image_url"),
+  socialLinks: jsonb("social_links").default(sql`'{}'::jsonb`),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 export const galleryImages = pgTable("gallery_images", {
   id: varchar("id").primaryKey(),
+  eventId: varchar("event_id").notNull().references(() => events.id, { onDelete: "cascade" }),
   title: text("title").notNull(),
   imageUrl: text("image_url").notNull(),
   description: text("description"),
+  isMainImage: boolean("is_main_image").default(false), // Main display image for the event
+  displayOrder: integer("display_order").default(0), // Order of images within an event
   createdAt: timestamp("created_at").defaultNow(),
 });
 

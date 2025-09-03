@@ -59,6 +59,7 @@ let pool: any;
 export interface IStorage {
   // Events
   getEvents(): Promise<Event[]>;
+  getAllEvents(): Promise<Event[]>; // Get all events including gallery-only (for admin)
   getEvent(id: string): Promise<Event | undefined>;
   createEvent(event: InsertEvent): Promise<Event>;
   updateEvent(id: string, event: Partial<InsertEvent>): Promise<Event | undefined>;
@@ -326,6 +327,10 @@ export class MemStorage implements IStorage {
 
   // Events
   async getEvents(): Promise<Event[]> {
+    return Array.from(this.events.values()).filter(event => !event.isGalleryOnly);
+  }
+
+  async getAllEvents(): Promise<Event[]> {
     return Array.from(this.events.values());
   }
 
@@ -1064,26 +1069,65 @@ export class DatabaseStorage implements IStorage {
 
   // Events
   async getEvents(): Promise<Event[]> {
+    // Get only public events (exclude gallery-only events)
+    const eventsList = await db.select().from(events).where(eq(events.isGalleryOnly, false));
+    
+    // Get all gallery images
+    const allGalleryImages = await db.select().from(galleryImages);
+    
+    // Convert timestamps to date strings (YYYY-MM-DD) if they are Date objects
+    // and add gallery images to each event
+    return eventsList.map(event => {
+      if (event.date && event.date instanceof Date) {
+        event.date = event.date.toISOString().split('T')[0];
+      }
+      
+      // Find gallery images for this event
+      const eventGalleryImages = allGalleryImages.filter(img => img.eventId === event.id);
+      const mainGalleryImage = eventGalleryImages.find(img => img.isMainImage);
+      
+      return {
+        ...event,
+        galleryImages: eventGalleryImages,
+        mainGalleryImage: mainGalleryImage
+      };
+    });
+  }
+
+  // Get all events including gallery-only events (for admin use)
+  async getAllEvents(): Promise<Event[]> {
     const eventsList = await db.select().from(events);
     
-    // Fix any invalid dates in the events
+    // Get all gallery images
+    const allGalleryImages = await db.select().from(galleryImages);
+    
+    // Convert timestamps to date strings (YYYY-MM-DD) if they are Date objects
+    // and add gallery images to each event
     return eventsList.map(event => {
-      if (event.date && event.date.toString() === 'Invalid Date') {
-        console.log("Fixing invalid date in getEvents for event:", event.id);
-        // Set a default future date if the date is invalid
-        event.date = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days from now
+      if (event.date && event.date instanceof Date) {
+        event.date = event.date.toISOString().split('T')[0];
       }
-      return event;
+      
+      // Find gallery images for this event
+      const eventGalleryImages = allGalleryImages.filter(img => img.eventId === event.id);
+      const mainGalleryImage = eventGalleryImages.find(img => img.isMainImage);
+      
+      return {
+        ...event,
+        galleryImages: eventGalleryImages,
+        mainGalleryImage: mainGalleryImage
+      };
     });
   }
 
   async getEvent(id: string): Promise<Event | undefined> {
     const [event] = await db.select().from(events).where(eq(events.id, id));
     
-    if (event && event.date && event.date.toString() === 'Invalid Date') {
-      console.log("Fixing invalid date in getEvent for event:", event.id);
-      // Set a default future date if the date is invalid
-      event.date = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days from now
+    if (event && event.date) {
+      // Convert timestamp to date string (YYYY-MM-DD) if it's a Date object
+      if (event.date instanceof Date) {
+        event.date = event.date.toISOString().split('T')[0];
+      }
     }
     
     return event || undefined;
@@ -1141,17 +1185,9 @@ export class DatabaseStorage implements IStorage {
     
     console.log("DatabaseStorage updateEvent - output:", updated);
     
-    // Fix invalid dates in the returned data
-    if (updated && updated.date && updated.date.toString() === 'Invalid Date') {
-      console.log("Fixing invalid date in returned data");
-      // Get the original event to preserve the valid date
-      const originalEvent = await this.getEvent(id);
-      if (originalEvent && originalEvent.date && originalEvent.date.toString() !== 'Invalid Date') {
-        updated.date = originalEvent.date;
-      } else {
-        // If no valid date exists, set a default future date
-        updated.date = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days from now
-      }
+    // Convert timestamp to date string (YYYY-MM-DD) if it's a Date object
+    if (updated && updated.date && updated.date instanceof Date) {
+      updated.date = updated.date.toISOString().split('T')[0];
     }
     
     return updated || undefined;

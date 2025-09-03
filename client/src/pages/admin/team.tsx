@@ -35,6 +35,13 @@ const teamMemberSchema = z.object({
   position: z.string().min(1, "Position is required"),
   description: z.string().min(1, "Description is required"),
   imageUrl: z.string().optional(),
+  socialLinks: z.object({
+    facebook: z.string().optional(),
+    twitter: z.string().optional(),
+    instagram: z.string().optional(),
+    linkedin: z.string().optional(),
+    github: z.string().optional(),
+  }).optional(),
 });
 
 type TeamMemberFormData = z.infer<typeof teamMemberSchema>;
@@ -55,6 +62,13 @@ export default function AdminTeam() {
       position: "",
       description: "",
       imageUrl: "",
+      socialLinks: {
+        facebook: "",
+        twitter: "",
+        instagram: "",
+        linkedin: "",
+        github: "",
+      },
     },
   });
 
@@ -131,6 +145,13 @@ export default function AdminTeam() {
       position: member.position,
       description: member.description,
       imageUrl: member.imageUrl || "",
+      socialLinks: {
+        facebook: member.socialLinks?.facebook || "",
+        twitter: member.socialLinks?.twitter || "",
+        instagram: member.socialLinks?.instagram || "",
+        linkedin: member.socialLinks?.linkedin || "",
+        github: member.socialLinks?.github || "",
+      },
     });
     setIsOpen(true);
   };
@@ -270,6 +291,101 @@ export default function AdminTeam() {
                     </FormItem>
                   )}
                 />
+
+                {/* Social Links Section */}
+                <div className="space-y-4">
+                  <h4 className="text-tech-dark font-tech font-medium">Social Links (Optional)</h4>
+                  
+                  <FormField
+                    control={form.control}
+                    name="socialLinks.facebook"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-tech-dark font-tech">Facebook</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="https://facebook.com/username" 
+                            className="border-tech-grey/30 focus:border-tech-blue font-tech"
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="socialLinks.twitter"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-tech-dark font-tech">Twitter</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="https://twitter.com/username" 
+                            className="border-tech-grey/30 focus:border-tech-blue font-tech"
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="socialLinks.instagram"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-tech-dark font-tech">Instagram</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="https://instagram.com/username" 
+                            className="border-tech-grey/30 focus:border-tech-blue font-tech"
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="socialLinks.linkedin"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-tech-dark font-tech">LinkedIn</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="https://linkedin.com/in/username" 
+                            className="border-tech-grey/30 focus:border-tech-blue font-tech"
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="socialLinks.github"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-tech-dark font-tech">GitHub</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="https://github.com/username" 
+                            className="border-tech-grey/30 focus:border-tech-blue font-tech"
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
 
                 <DialogFooter>
                   <Button 

@@ -48,6 +48,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin Events (includes gallery-only events)
+  app.get("/api/admin/events", requireAuth, async (req, res) => {
+    try {
+      const events = await storage.getAllEvents();
+      res.json(events);
+    } catch (error) {
+      console.error("Admin events fetch error:", error);
+      res.status(500).json({ message: "Failed to fetch events" });
+    }
+  });
+
   // Gallery
   app.get("/api/gallery", async (req, res) => {
     try {
@@ -672,7 +683,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log("Creating gallery image:", req.body);
       
-      const galleryImage = await storage.createGalleryImage(req.body);
+      const validatedData = insertGalleryImageSchema.parse(req.body);
+      const galleryImage = await storage.createGalleryImage(validatedData);
       console.log("Gallery image created successfully:", galleryImage);
       res.json(galleryImage);
     } catch (error: any) {
@@ -695,7 +707,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log("Updating gallery image:", req.params.id, "with data:", req.body);
       
-      const galleryImage = await storage.updateGalleryImage(req.params.id, req.body);
+      const validatedData = insertGalleryImageSchema.partial().parse(req.body);
+      const galleryImage = await storage.updateGalleryImage(req.params.id, validatedData);
       if (!galleryImage) {
         return res.status(404).json({ message: "Gallery image not found" });
       }
@@ -703,10 +716,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(galleryImage);
     } catch (error: any) {
       console.error("Gallery image update error:", error);
-      res.status(500).json({ 
-        message: "Failed to update gallery image", 
-        error: error.message 
-      });
+      if (error.name === 'ZodError') {
+        res.status(400).json({ 
+          message: "Validation error", 
+          errors: error.errors 
+        });
+      } else {
+        res.status(500).json({ 
+          message: "Failed to update gallery image", 
+          error: error.message 
+        });
+      }
     }
   });
 
@@ -741,11 +761,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin Team Members
   app.post("/api/team", requireAuth, async (req, res) => {
     try {
+      console.log("Received team member data:", JSON.stringify(req.body, null, 2));
       const validatedData = insertTeamMemberSchema.parse(req.body);
+      console.log("Validated data:", JSON.stringify(validatedData, null, 2));
       const member = await storage.createTeamMember(validatedData);
       res.json(member);
     } catch (error) {
-      res.status(400).json({ message: "Invalid team member data" });
+      console.error("Team member validation error:", error);
+      res.status(400).json({ message: "Invalid team member data", error: error.message });
     }
   });
 
