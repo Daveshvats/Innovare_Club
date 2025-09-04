@@ -7,29 +7,32 @@ import { Navigation } from "@/components/navigation";
 import { Footer } from "@/components/footer";
 import { AdminLayout } from "@/components/admin-layout";
 import { AuthGuard } from "@/components/auth-guard";
-import Home from "@/pages/home";
-import About from "@/pages/about";
-import Events from "@/pages/events";
-import Techfest from "./pages/techfest";
-import TechFestEvents from "./pages/techfestevents";
-import Gallery from "@/pages/gallery";
-import NotFound from "@/pages/not-found";
-import AdminLogin from "@/pages/admin/login";
-import AdminDashboard from "@/pages/admin/dashboard";
-import AdminEvents from "@/pages/admin/events";
-import AdminTeam from "@/pages/admin/team";
-import AdminEventGallery from "@/pages/admin/event-gallery";
-import AdminRegistrations from "@/pages/admin/registrations";
-import AdminAbout from "@/pages/admin/about";
-import Community from "@/pages/community";
-import AdminPolls from "@/pages/admin/polls";
-import AdminAnnouncements from "@/pages/admin/announcements";
-import AdminCourses from "@/pages/admin/courses";
-import AdminUsers from "@/pages/admin/users";
-import AdminTechnofest from "@/pages/admin/technofest";
-import UserLogin from "@/pages/user/login";
-import { useEffect, useState } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
 import { SplineLoader } from "./components/loader-spline";
+import { preloadSplineRuntime } from "@/lib/spline-loader";
+
+// Lazy load heavy components
+const Home = lazy(() => import("@/pages/home"));
+const About = lazy(() => import("@/pages/about"));
+const Events = lazy(() => import("@/pages/events"));
+const Techfest = lazy(() => import("./pages/techfest"));
+const TechFestEvents = lazy(() => import("./pages/techfestevents"));
+const Gallery = lazy(() => import("@/pages/gallery"));
+const NotFound = lazy(() => import("@/pages/not-found"));
+const AdminLogin = lazy(() => import("@/pages/admin/login"));
+const AdminDashboard = lazy(() => import("@/pages/admin/dashboard"));
+const AdminEvents = lazy(() => import("@/pages/admin/events"));
+const AdminTeam = lazy(() => import("@/pages/admin/team"));
+const AdminEventGallery = lazy(() => import("@/pages/admin/event-gallery"));
+const AdminRegistrations = lazy(() => import("@/pages/admin/registrations"));
+const AdminAbout = lazy(() => import("@/pages/admin/about"));
+const Community = lazy(() => import("@/pages/community"));
+const AdminPolls = lazy(() => import("@/pages/admin/polls"));
+const AdminAnnouncements = lazy(() => import("@/pages/admin/announcements"));
+const AdminCourses = lazy(() => import("@/pages/admin/courses"));
+const AdminUsers = lazy(() => import("@/pages/admin/users"));
+const AdminTechnofest = lazy(() => import("@/pages/admin/technofest"));
+const UserLogin = lazy(() => import("@/pages/user/login"));
 function PageLoader() {
   return (
     <div className="fixed inset-0 bg-tech-light z-50 flex items-center justify-center">
@@ -98,6 +101,9 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // Preload Spline runtime for better performance
+    preloadSplineRuntime();
+    
     const timer = setTimeout(() => {
       setIsLoading(false);
     }, 2000);
@@ -113,7 +119,9 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
-        <Router />
+        <Suspense fallback={<PageLoader />}>
+          <Router />
+        </Suspense>
       </TooltipProvider>
     </QueryClientProvider>
   );

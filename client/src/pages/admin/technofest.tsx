@@ -356,10 +356,10 @@ export default function AdminTechnofest() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-tech text-tech-grey">Active Events</p>
-                <p className="text-2xl font-bold font-tech text-tech-dark">{events.filter(e => e.isActive).length}</p>
+                <p className="text-sm font-tech text-tech-grey">Sports</p>
+                <p className="text-2xl font-bold font-tech text-tech-dark">{events.filter(e => e.category === 'Sports').length}</p>
               </div>
-              <Eye className="h-8 w-8 text-green-600" />
+              <div className="h-8 w-8 text-green-600 flex items-center justify-center text-xl">⚽</div>
             </div>
           </CardContent>
         </Card>
@@ -399,9 +399,6 @@ export default function AdminTechnofest() {
                       <h3 className="text-xl font-bold font-tech text-tech-dark">{event.name}</h3>
                       <Badge className={getCategoryColor(event.category)}>
                         {event.category}
-                      </Badge>
-                      <Badge variant={event.isActive ? "default" : "secondary"} className="font-tech">
-                        {event.isActive ? "Active" : "Inactive"}
                       </Badge>
                       {event.number && (
                         <Badge variant="outline" className="font-tech">
@@ -709,9 +706,6 @@ export default function AdminTechnofest() {
               <div className="flex space-x-2">
                 <Badge className={getCategoryColor(viewingEvent.category)}>
                   {viewingEvent.category}
-                </Badge>
-                <Badge variant={viewingEvent.isActive ? "default" : "secondary"} className="font-tech">
-                  {viewingEvent.isActive ? "Active" : "Inactive"}
                 </Badge>
               </div>
             </DialogHeader>

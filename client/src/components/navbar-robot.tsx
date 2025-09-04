@@ -1,4 +1,5 @@
 import { memo, useEffect, useRef } from 'react';
+import { createSplineApp } from '@/lib/spline-loader';
 
 interface NavbarRobotProps {
   className?: string;
@@ -9,25 +10,29 @@ export const NavbarRobot = memo(function NavbarRobot({ className = "" }: NavbarR
   const appRef = useRef<any>(null);
 
   useEffect(() => {
-    let Application: any;
     let app: any;
+    let canceled = false;
 
     async function init() {
-      if (!canvasRef.current) return;
+      if (!canvasRef.current || canceled) return;
 
       try {
-        // Dynamically import the Spline runtime ES module from CDN
-        // @ts-ignore - Dynamic import from CDN
-        const module = await import('https://unpkg.com/@splinetool/runtime@1.10.51/build/runtime.js');
-        Application = module.Application;
+        // Use shared Spline runtime loader
+        app = await createSplineApp(canvasRef.current, 1.5); // Lower DPR for navbar
 
-        // Initialize the 3D app on the canvas
-        app = new Application(canvasRef.current);
+        if (canceled) {
+          app.destroy();
+          return;
+        }
 
         // Load your specific Spline scene
         await app.load('https://prod.spline.design/Ay6UN91vSyqNnyBd/scene.splinecode');
 
-        appRef.current = app;
+        if (!canceled) {
+          appRef.current = app;
+        } else {
+          app.destroy();
+        }
       } catch (error) {
         console.error('Failed to load Spline scene:', error);
       }
@@ -37,6 +42,7 @@ export const NavbarRobot = memo(function NavbarRobot({ className = "" }: NavbarR
 
     // Cleanup on unmount
     return () => {
+      canceled = true;
       if (appRef.current) {
         try {
           appRef.current.destroy();

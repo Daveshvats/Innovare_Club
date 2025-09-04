@@ -1,34 +1,39 @@
 // src/pages/techfest.tsx
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'wouter';
 import { HoverBorderGradient } from '@/components/ui/hover-border-gradient';
+import { createSplineApp } from '@/lib/spline-loader';
 
-const TechFestBackground: React.FC<{ className?: string }> = ({ className = "" }) => {
+const TechFestBackground = memo<{ className?: string }>(function TechFestBackground({ className = "" }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const appRef = useRef<any>(null);
 
   useEffect(() => {
-    let Application: any;
     let app: any;
+    let canceled = false;
 
     async function init() {
-      if (!canvasRef.current) return;
+      if (!canvasRef.current || canceled) return;
 
       try {
-        // Dynamically import the Spline runtime ES module from CDN
-        // @ts-ignore - Dynamic import from CDN
-        const module = await import('https://unpkg.com/@splinetool/runtime@1.10.51/build/runtime.js');
-        Application = module.Application;
+        // Use shared Spline runtime loader
+        app = await createSplineApp(canvasRef.current, 1.75);
 
-        // Initialize the 3D app on the canvas
-        app = new Application(canvasRef.current);
+        if (canceled) {
+          app.destroy();
+          return;
+        }
 
         // Load the specific Spline scene
         await app.load('https://prod.spline.design/AYO2dvuQ1LGfA3dM/scene.splinecode');
 
-        appRef.current = app;
+        if (!canceled) {
+          appRef.current = app;
+        } else {
+          app.destroy();
+        }
       } catch (error) {
         console.error('Failed to load TechFest background scene:', error);
       }
@@ -38,6 +43,7 @@ const TechFestBackground: React.FC<{ className?: string }> = ({ className = "" }
 
     // Cleanup on unmount
     return () => {
+      canceled = true;
       if (appRef.current) {
         try {
           appRef.current.destroy();
@@ -65,7 +71,7 @@ const TechFestBackground: React.FC<{ className?: string }> = ({ className = "" }
       />
     </div>
   );
-};
+});
 
 type Category = {
   id: string;
@@ -99,7 +105,7 @@ const categories: Category[] = [
   }
 ];
 
-export default function Techfest() {
+const Techfest = memo(function Techfest() {
   const [loading, setLoading] = useState(true);
   const [showCategoryDialog, setShowCategoryDialog] = useState(false);
 
@@ -120,8 +126,8 @@ export default function Techfest() {
 
   if (loading) {
     return (
-      <div className="min-h-screen pt-16 bg-gradient-to-br from-tech-light via-background to-gray-50">
-        <div className="flex h-screen items-center justify-center">
+      <div className="h-screen pt-16 bg-gradient-to-br from-tech-light via-background to-gray-50 overflow-hidden">
+        <div className="flex h-full items-center justify-center">
           <div className="text-center">
             <div className="text-2xl font-tech font-bold mb-4 text-tech-dark">Loading TechFest...</div>
             <div className="animate-pulse text-tech-grey">Please wait while we load the experience</div>
@@ -132,12 +138,12 @@ export default function Techfest() {
   }
 
   return (
-    <div className="min-h-screen pt-16 scroll-smooth">
+    <div className="h-screen pt-16 overflow-hidden">
       {/* Hero Section */}
       <section
-        className="min-h-screen relative overflow-hidden"
+        className="h-full relative overflow-hidden"
         style={{
-          height: 'calc(100dvh - 4rem)',
+          height: 'calc(100vh - 4rem)',
           background: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 25%, #a8edea 50%, #fed6e3 75%, #d299c2 100%)'
         }}
         data-testid="techfest-hero-section"
@@ -146,14 +152,14 @@ export default function Techfest() {
         <div className="absolute inset-0 z-0">
           <TechFestBackground />
         </div>
-        <div className="w-full h-full flex items-center justify-center px-4 sm:px-6 lg:px-8">
-          <div className="text-center space-y-6 lg:space-y-8 w-full max-w-4xl mx-auto relative z-20">
+        <div className="w-full h-full flex flex-col justify-between sm:justify-center px-4 sm:px-6 lg:px-8 pt-16 sm:pt-0">
+          <div className="text-center space-y-4 sm:space-y-6 lg:space-y-8 w-full max-w-4xl mx-auto relative z-20">
             <div className="text-sm font-tech font-bold uppercase tracking-widest text-orange-300/80 mb-4 text-center">
              
             </div>
             {/* rember this contains unique characters if you are seeing this then you dont see them :)*/}
             <motion.h1 
-              className="font-tech text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-black leading-none mb-8 text-center"
+              className="font-tech text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-black leading-none mb-2 sm:mb-4 text-center"
               style={{
                 background: 'linear-gradient(135deg, #000000 0%, #333333 100%)',
                 WebkitBackgroundClip: 'text',
@@ -164,28 +170,29 @@ export default function Techfest() {
               animate={{ opacity: 0 }}
               transition={{ duration: 0.1 }}
             >
-              "‎‎‎"
+              "‎‎‎‎‎‎‎‎"
             </motion.h1>
-            <motion.div
-              initial={{ opacity: 1 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.1 }}
-              className="mt-8 flex justify-center"
-            >
-              <HoverBorderGradient
-                as="button"
-                onClick={() => setShowCategoryDialog(true)}
-                className="px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-500 text-white font-tech font-bold text-lg tracking-wide"
-                containerClassName="rounded-full"
-                data-testid="button-explore-events"
-              >
-                EXPLORE EVENTS →
-              </HoverBorderGradient>
-            </motion.div>
-
             {/* Animated Scroll Indicator */}
             
           </div>
+          
+          {/* Button positioned at bottom for mobile, centered for desktop */}
+          <motion.div
+            initial={{ opacity: 1 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.1 }}
+            className="flex justify-center pb-64 sm:pb-0 sm:mt-8"
+          >
+            <HoverBorderGradient
+              as="button"
+              onClick={() => setShowCategoryDialog(true)}
+              className="px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-500 text-white font-tech font-bold text-lg tracking-wide"
+              containerClassName="rounded-full"
+              data-testid="button-explore-events"
+            >
+              EXPLORE EVENTS →
+            </HoverBorderGradient>
+          </motion.div>
         </div>
       </section>
 
@@ -220,7 +227,7 @@ export default function Techfest() {
                   <button
                     key={category.id}
                     onClick={() => handleCategorySelect(category.id)}
-                    className="backdrop-blur-md bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 shadow-xl hover:shadow-2xl p-4 sm:p-6 rounded-xl transition-all hover-lift text-left group"
+                    className="backdrop-blur-md bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 shadow-xl hover:shadow-2xl p-4 sm:p-6 rounded-xl transition-all text-left group"
                     data-testid={`category-${category.id}`}
                   >
                     <div className="text-2xl sm:text-3xl md:text-4xl mb-3 sm:mb-4 group-hover:scale-110 transition-transform">
@@ -254,4 +261,6 @@ export default function Techfest() {
       </AnimatePresence>
     </div>
   );
-}
+});
+
+export default Techfest;

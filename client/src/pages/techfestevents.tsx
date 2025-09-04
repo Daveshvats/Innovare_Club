@@ -1,6 +1,6 @@
 // src/pages/techevents.tsx
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { HoverBorderGradient } from '@/components/ui/hover-border-gradient';
 
@@ -21,11 +21,11 @@ const isImageUrl = (url: string): boolean => {
 };
 
 // Dynamic component loader for generated Spline components and image fallbacks
-const DynamicSplineComponent: React.FC<{ 
+const DynamicSplineComponent = memo<{ 
   eventName: string; 
   className?: string; 
   fallbackUrl?: string;
-}> = ({ eventName, className = "", fallbackUrl }) => {
+}>(function DynamicSplineComponent({ eventName, className = "", fallbackUrl }) {
   const [SplineComponent, setSplineComponent] = useState<React.ComponentType<any> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -161,9 +161,9 @@ const DynamicSplineComponent: React.FC<{
   }
 
   return null;
-};
+});
 
-const TechEventsBackground: React.FC<{ className?: string }> = ({ className = "" }) => {
+const TechEventsBackground = memo<{ className?: string }>(function TechEventsBackground({ className = "" }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const appRef = useRef<any>(null);
 
@@ -223,7 +223,7 @@ const TechEventsBackground: React.FC<{ className?: string }> = ({ className = ""
       />
     </div>
   );
-};
+});
 
 type EventItem = {
   id: string;
@@ -250,7 +250,7 @@ type RegistrationPayload = {
   contactEmail: string;
 };
 
-export default function TechEvents() {
+const TechEvents = memo(function TechEvents() {
   const [events, setEvents] = useState<EventItem[]>([]);
   const [filteredEvents, setFilteredEvents] = useState<EventItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -670,7 +670,7 @@ export default function TechEvents() {
               </p>
               <button
                 onClick={() => window.location.href = '/techfest'}
-                className="px-8 py-4 tech-gradient text-white font-tech font-semibold rounded-xl hover:shadow-lg transition-all hover-lift"
+                className="px-8 py-4 tech-gradient text-white font-tech font-semibold rounded-xl hover:shadow-lg transition-all"
               >
                 Back to TechFest
               </button>
@@ -898,7 +898,9 @@ export default function TechEvents() {
       </AnimatePresence>
     </div>
   );
-}
+});
+
+export default TechEvents;
 
 /* ---------- Modal + helpers ---------- */
 

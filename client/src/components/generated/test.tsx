@@ -24,12 +24,12 @@ export const Test = memo(function Test({ className = "" }: TestProps) {
         // Initialize the 3D app on the canvas
         app = new Application(canvasRef.current);
 
-        // Load the Spline scene for test
-        await app.load('https://prod.spline.design/igDIeIuXWbuegzCZ/scene.splinecode');
+        // Load the Spline scene for TEST
+        await app.load('https://prod.spline.design/r8XEjn9WlpwRm3DU/scene.splinecode');
 
         appRef.current = app;
       } catch (error) {
-        console.error('Failed to load test Spline scene:', error);
+        console.error('Failed to load TEST Spline scene:', error);
       }
     }
 
@@ -41,7 +41,7 @@ export const Test = memo(function Test({ className = "" }: TestProps) {
         try {
           appRef.current.destroy();
         } catch (error) {
-          console.error('Error destroying test Spline app:', error);
+          console.error('Error destroying TEST Spline app:', error);
         }
         appRef.current = null;
       }

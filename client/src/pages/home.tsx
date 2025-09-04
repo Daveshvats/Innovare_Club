@@ -3,6 +3,7 @@ import { CountdownTimer } from "@/components/countdown-timer";
 import { useScrollAnimation } from "@/hooks/use-scroll-animation";
 import { HomeRobot } from "@/components/home-robot";
 import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from 'framer-motion';
 interface FeaturedEvent {
   id: string;
   title: string;
@@ -12,6 +13,18 @@ interface FeaturedEvent {
   location: string;
   tags?: string[];
   imageUrl?: string;
+  maxParticipants?: number;
+  currentParticipants: number;
+  featured: boolean;
+  isActive: boolean;
+  registrationType?: string;
+  registrationUrl?: string;
+}
+
+interface RegistrationData {
+  name: string;
+  email: string;
+  phone?: string;
 }
 
 export default function Home() {
@@ -19,6 +32,13 @@ export default function Home() {
   const eventRef = useScrollAnimation();
   const [featuredEvent, setFeaturedEvent] = useState<FeaturedEvent | null>(null);
   const [loading, setLoading] = useState(true);
+  const [registerEvent, setRegisterEvent] = useState<FeaturedEvent | null>(null);
+  const [registrationData, setRegistrationData] = useState<RegistrationData>({
+    name: '',
+    email: '',
+    phone: ''
+  });
+  const [registrationLoading, setRegistrationLoading] = useState(false);
 
   // Fetch featured event from database
   useEffect(() => {
@@ -41,7 +61,12 @@ export default function Home() {
           time: '10:00 AM - 6:00 PM',
           location: 'Innovation Center',
           tags: ['Programming', 'Tech Competition', 'Innovation'],
-          imageUrl: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=600'
+          imageUrl: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=600',
+          maxParticipants: 500,
+          currentParticipants: 150,
+          featured: true,
+          isActive: true,
+          registrationType: 'dialog'
         });
       } finally {
         setLoading(false);
@@ -50,6 +75,56 @@ export default function Home() {
 
     fetchFeaturedEvent();
   }, []);
+
+  // Handle registration
+  const handleRegistration = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!registerEvent) return;
+
+    // Check if event is full
+    if (registerEvent.maxParticipants && 
+        registerEvent.currentParticipants >= registerEvent.maxParticipants) {
+      alert('Sorry, this event is full!');
+      return;
+    }
+
+    setRegistrationLoading(true);
+    try {
+      const response = await fetch(`/api/events/${registerEvent.id}/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(registrationData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Registration failed');
+      }
+
+      // Update local state
+      setFeaturedEvent(prev => prev ? { ...prev, currentParticipants: prev.currentParticipants + 1 } : null);
+
+      setRegisterEvent(null);
+      setRegistrationData({ name: '', email: '', phone: '' });
+      alert('Registration successful! We will contact you soon.');
+    } catch (error) {
+      console.error('Registration error:', error);
+      alert(error instanceof Error ? error.message : 'Registration failed. Please try again.');
+    } finally {
+      setRegistrationLoading(false);
+    }
+  };
+
+  // Check if registrations are open for an event
+  const isRegistrationOpen = (event: FeaturedEvent) => {
+    if (!event.isActive) return false;
+    if (event.maxParticipants && event.currentParticipants >= event.maxParticipants) return false;
+    const eventDate = new Date(event.date);
+    const now = new Date();
+    return eventDate > now; // Registration open if event is in the future
+  };
 
   return (
     <div className="min-h-screen scroll-smooth">
@@ -167,6 +242,25 @@ export default function Home() {
                     </svg>
                     <span className="font-mono">{featuredEvent.location}</span>
                   </div>
+                  
+                  {/* Registration Button */}
+                  {isRegistrationOpen(featuredEvent) && (
+                    <div className="pt-4">
+                      <button
+                        onClick={() => {
+                          if (featuredEvent.registrationType === "redirect" && featuredEvent.registrationUrl) {
+                            window.location.href = featuredEvent.registrationUrl;
+                          } else {
+                            setRegisterEvent(featuredEvent);
+                          }
+                        }}
+                        className="px-6 sm:px-8 py-3 sm:py-4 tech-gradient text-white font-mono font-semibold rounded-xl hover:shadow-lg transition-all transform hover:-translate-y-1 hover-lift"
+                        data-testid="register-button"
+                      >
+                        Register Now
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 {/* Countdown Timer */}
@@ -185,6 +279,91 @@ export default function Home() {
           )}
         </div>
       </section>
+
+      {/* Registration Modal */}
+      <AnimatePresence>
+        {registerEvent && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+            onClick={() => setRegisterEvent(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="w-full max-w-lg mx-4 rounded-2xl backdrop-blur-lg bg-white/95 dark:bg-gray-900/95 border border-gray-200 dark:border-gray-700 shadow-xl p-6"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h2 className="text-2xl font-tech font-bold text-gray-900 dark:text-white mb-4">
+                Register for {registerEvent.title}
+              </h2>
+              
+              <form onSubmit={handleRegistration} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Full Name *
+                  </label>
+                  <input
+                    type="text"
+                    value={registrationData.name}
+                    onChange={(e) => setRegistrationData(prev => ({ ...prev, name: e.target.value }))}
+                    className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-tech-blue focus:outline-none focus:ring-2 focus:ring-tech-blue/20"
+                    placeholder="Enter your full name"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Email Address *
+                  </label>
+                  <input
+                    type="email"
+                    value={registrationData.email}
+                    onChange={(e) => setRegistrationData(prev => ({ ...prev, email: e.target.value }))}
+                    className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-tech-blue focus:outline-none focus:ring-2 focus:ring-tech-blue/20"
+                    placeholder="Enter your email"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Phone Number (Optional)
+                  </label>
+                  <input
+                    type="tel"
+                    value={registrationData.phone}
+                    onChange={(e) => setRegistrationData(prev => ({ ...prev, phone: e.target.value }))}
+                    className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-tech-blue focus:outline-none focus:ring-2 focus:ring-tech-blue/20"
+                    placeholder="Enter your phone number"
+                  />
+                </div>
+
+                <div className="flex gap-4 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setRegisterEvent(null)}
+                    className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-3 text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={registrationLoading}
+                    className="flex-1 rounded-lg tech-gradient px-4 py-3 font-tech font-semibold text-white hover:shadow-lg transition-all disabled:opacity-50"
+                  >
+                    {registrationLoading ? 'Registering...' : 'Register'}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

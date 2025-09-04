@@ -63,9 +63,6 @@ export function CountdownTimer({ targetDate, className = "" }: CountdownTimerPro
           <div className="text-xs sm:text-sm">Seconds</div>
         </div>
       </div>
-      <button className="mt-3 sm:mt-4 w-full bg-white text-tech-blue font-mono font-semibold py-2 sm:py-3 rounded-lg sm:rounded-xl hover:bg-gray-100 transition-all duration-300 hover-lift text-sm sm:text-base" data-testid="register-button">
-        Register Now
-      </button>
     </div>
   );
 }

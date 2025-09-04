@@ -295,6 +295,8 @@ export default function Events() {
                       src={featuredEvent.imageUrl || 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=600'}
                       alt={featuredEvent.title}
                       className="w-full h-full object-cover"
+                      loading="lazy"
+                      decoding="async"
                     />
                     <div className="absolute top-3 right-3">
                       <span className={`px-2 py-1 text-white text-xs font-semibold rounded-full ${getEventStatus(featuredEvent).color}`}>

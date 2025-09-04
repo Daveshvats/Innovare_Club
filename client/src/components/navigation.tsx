@@ -106,7 +106,7 @@ export const Navigation = memo(function Navigation() {
               <Link
                 key={item.name}
                 href={item.href}
-                className={`nav-link font-tech font-medium transition-all duration-300 hover:text-tech-blue hover-lift text-sm xl:text-base ${
+                className={`nav-link font-tech font-medium transition-colors duration-300 hover:text-tech-blue text-sm xl:text-base ${
                   location === item.href
                     ? "text-tech-blue font-bold"
                     : "text-tech-grey"
@@ -116,16 +116,18 @@ export const Navigation = memo(function Navigation() {
                 {item.name}
               </Link>
             ))}
-            {/* Center: NavbarRobot */}
+            {/* Center: NavbarRobot - Links to home on desktop, opens menu on mobile */}
             <Link href="/" data-testid="nav-logo">
-              <NavbarRobot className="w-16 h-16 cursor-pointer" />
+              <div className="flex items-center justify-center w-16 h-16 rounded-lg transition-colors overflow-hidden">
+                <NavbarRobot className="w-16 h-16 cursor-pointer" />
+              </div>
             </Link>
             {/* Right side: Community, Gallery */}
             {navItems.slice(2).map((item) => (
               <Link
                 key={item.name}
                 href={item.href}
-                className={`nav-link font-tech font-medium transition-all duration-300 hover:text-tech-blue hover-lift text-sm xl:text-base ${
+                className={`nav-link font-tech font-medium transition-colors duration-300 hover:text-tech-blue text-sm xl:text-base ${
                   location === item.href
                     ? "text-tech-blue font-bold"
                     : "text-tech-grey"
@@ -207,11 +209,11 @@ export const Navigation = memo(function Navigation() {
               </Link>
             )}
           </div>
-          {/* Mobile Navigation Button */}
-          <div className="lg:hidden flex items-center justify-center">
+          {/* Mobile Navigation Button - Centered */}
+          <div className="lg:hidden flex items-center justify-center flex-1">
             <button
               onClick={toggleMobileMenu}
-              className="flex items-center justify-center w-16 h-16 rounded-lg hover:bg-accent transition-colors hover-lift overflow-hidden"
+              className="flex items-center justify-center w-16 h-16 rounded-lg transition-colors overflow-hidden"
               data-testid="mobile-menu-toggle"
             >
               <NavbarRobot className="w-16 h-16 flex-shrink-0" />
@@ -219,9 +221,9 @@ export const Navigation = memo(function Navigation() {
           </div>
         </div>
 
-        {/* Mobile Navigation Menu */}
+        {/* Navigation Menu - Mobile and Desktop */}
         {mobileMenuOpen && (
-          <div className="lg:hidden bg-background/95 backdrop-blur-lg border-t border-border/50 animate-slide-up z-40">
+          <div className="bg-background/95 backdrop-blur-lg border-t border-border/50 animate-slide-up z-40">
             <div className="px-4 py-4 space-y-2">
               {/* Navigation Items including Home */}
               {[
