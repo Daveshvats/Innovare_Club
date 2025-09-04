@@ -542,25 +542,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Date field type:", typeof req.body.date);
       console.log("Date field value:", req.body.date);
       
-      // Convert date string to Date object if it's a string
+      // Prepare event data for validation
       const eventData = { ...req.body };
+      
+      // Keep date as string (schema expects text field)
       if (eventData.date) {
         if (typeof eventData.date === 'string') {
+          // Validate date format but keep as string
           const parsedDate = new Date(eventData.date);
           if (isNaN(parsedDate.getTime())) {
             throw new Error(`Invalid date format: ${eventData.date}`);
           }
-          eventData.date = parsedDate;
+          // Keep as string for database storage
+          eventData.date = eventData.date;
         } else if (typeof eventData.date === 'object' && eventData.date.$date) {
-          // Handle MongoDB-style date objects
-          eventData.date = new Date(eventData.date.$date);
+          // Handle MongoDB-style date objects - convert to string
+          const dateObj = new Date(eventData.date.$date);
+          eventData.date = dateObj.toISOString().split('T')[0]; // YYYY-MM-DD format
         }
-        console.log("Converted date:", eventData.date);
-        console.log("Converted date timestamp:", eventData.date.getTime());
+        console.log("Date kept as string:", eventData.date);
       }
       
+      // Convert featured from number to boolean
+      if (typeof eventData.featured === 'number') {
+        eventData.featured = eventData.featured === 1;
+      }
+      console.log("Featured converted to boolean:", eventData.featured);
+      
       // If this event is being set as featured, unfeature all other events
-      if (eventData.featured === 1 || eventData.featured === true) {
+      if (eventData.featured === true) {
         console.log("Setting new featured event, unfeaturing others...");
         await storage.unfeatureAllEvents();
       }
@@ -624,25 +634,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Update date field type:", typeof req.body.date);
       console.log("Update date field value:", req.body.date);
       
-      // Convert date string to Date object if it's a string
+      // Prepare update data
       const updateData = { ...req.body };
+      
+      // Keep date as string (schema expects text field)
       if (updateData.date) {
         if (typeof updateData.date === 'string') {
+          // Validate date format but keep as string
           const parsedDate = new Date(updateData.date);
           if (isNaN(parsedDate.getTime())) {
             throw new Error(`Invalid date format: ${updateData.date}`);
           }
-          updateData.date = parsedDate;
+          // Keep as string for database storage
+          updateData.date = updateData.date;
         } else if (typeof updateData.date === 'object' && updateData.date.$date) {
-          // Handle MongoDB-style date objects
-          updateData.date = new Date(updateData.date.$date);
+          // Handle MongoDB-style date objects - convert to string
+          const dateObj = new Date(updateData.date.$date);
+          updateData.date = dateObj.toISOString().split('T')[0]; // YYYY-MM-DD format
         }
-        console.log("Converted update date:", updateData.date);
-        console.log("Converted update date timestamp:", updateData.date.getTime());
+        console.log("Update date kept as string:", updateData.date);
       }
       
+      // Convert featured from number to boolean
+      if (typeof updateData.featured === 'number') {
+        updateData.featured = updateData.featured === 1;
+      }
+      console.log("Update featured converted to boolean:", updateData.featured);
+      
       // If this event is being set as featured, unfeature all other events
-      if (updateData.featured === 1 || updateData.featured === true) {
+      if (updateData.featured === true) {
         console.log("Setting event as featured, unfeaturing others...");
         await storage.unfeatureAllEvents();
       }
