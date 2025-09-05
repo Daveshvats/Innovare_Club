@@ -30,12 +30,19 @@ export async function apiRequest(
   if (options.headers) {
     Object.assign(headers, options.headers);
   }
+
+  // Add cache-busting for GET requests to ensure fresh data
+  const finalUrl = method === 'GET' && url.includes('/api/') 
+    ? `${url}${url.includes('?') ? '&' : '?'}t=${Date.now()}` 
+    : url;
   
-  const res = await fetch(url, {
+  const res = await fetch(finalUrl, {
     method,
     headers,
     body: data ? JSON.stringify(data) : undefined,
     credentials: "include",
+    // Force fresh data by bypassing browser cache
+    cache: 'no-cache',
   });
 
   await throwIfResNotOk(res);
@@ -48,8 +55,16 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const res = await fetch(queryKey.join("/") as string, {
+    const url = queryKey.join("/") as string;
+    
+    // Add cache-busting for API calls
+    const finalUrl = url.includes('/api/') 
+      ? `${url}${url.includes('?') ? '&' : '?'}t=${Date.now()}` 
+      : url;
+    
+    const res = await fetch(finalUrl, {
       credentials: "include",
+      cache: 'no-cache', // Force fresh data
     });
 
     if (unauthorizedBehavior === "returnNull" && res.status === 401) {

@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { authenticatedRequest } from "@/lib/api";
+import { CacheRefreshButton } from "@/components/cache-refresh-button";
 import { 
   Calendar, 
   Users, 
@@ -152,6 +153,10 @@ export default function AdminDashboard() {
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold font-tech text-tech-dark">Admin Dashboard</h1>
           <p className="text-tech-grey mt-2 font-tech">Manage your technical club content</p>
+        </div>
+        <div className="flex gap-2">
+          <CacheRefreshButton showText={true} />
+          <CacheRefreshButton nuclear={true} variant="destructive" showText={true} />
         </div>
       </div>
 

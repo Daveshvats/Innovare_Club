@@ -71,6 +71,12 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // CRITICAL: Skip API calls from caching to ensure fresh data
+  if (url.pathname.startsWith('/api/')) {
+    console.log('[SW] Skipping API cache for:', request.url);
+    return; // Let the request go directly to network
+  }
+
   event.respondWith(
     caches.match(request)
       .then((cachedResponse) => {
@@ -91,7 +97,7 @@ self.addEventListener('fetch', (event) => {
             // Clone the response
             const responseToCache = networkResponse.clone();
 
-            // Cache successful responses
+            // Cache successful responses (but not API calls)
             caches.open(DYNAMIC_CACHE)
               .then((cache) => {
                 cache.put(request, responseToCache);
