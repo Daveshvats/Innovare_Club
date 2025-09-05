@@ -18,7 +18,7 @@ export const Test = memo(function Test({ className = "" }: TestProps) {
       try {
         // Dynamically import the Spline runtime ES module from CDN
         // @ts-ignore - Dynamic import from CDN
-        const module = await import('https://unpkg.com/@splinetool/runtime@1.10.51/build/runtime.js');
+        const module = await import('https://unpkg.com/@splinetool/runtime@1.10.56/build/runtime.js');
         Application = module.Application;
 
         // Initialize the 3D app on the canvas

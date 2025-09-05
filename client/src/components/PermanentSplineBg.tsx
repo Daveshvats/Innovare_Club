@@ -2,7 +2,7 @@
 import React, { useEffect } from 'react';
 
 const VIEWER_SRC =
-  'https://unpkg.com/@splinetool/viewer@1.9.49/build/spline-viewer.js';
+  'https://unpkg.com/@splinetool/runtime@1.10.56/build/runtime.js';
 const BG_SCENE =
   'https://prod.spline.design/DC0L-NagpocfiwmY/scene.splinecode';
 

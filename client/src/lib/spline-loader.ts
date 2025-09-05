@@ -34,7 +34,7 @@ export async function loadSplineRuntime(): Promise<SplineRuntime> {
     return loadingPromise;
   }
 
-  loadingPromise = import('https://unpkg.com/@splinetool/runtime@1.10.51/build/runtime.js')
+  loadingPromise = import('https://unpkg.com/@splinetool/runtime@1.10.56/build/runtime.js')
     .then((module) => {
       splineRuntime = module;
       isInitialized = true;

@@ -31,7 +31,7 @@ export const SplineScene = memo(function SplineScene({
       if (!canvasRef.current) return;
       try {
         const mod = await import(
-          "https://unpkg.com/@splinetool/runtime@1.10.51/build/runtime.js"
+          "https://unpkg.com/@splinetool/runtime@1.10.56/build/runtime.js"
         );
         if (canceled) return;
 
