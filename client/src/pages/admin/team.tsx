@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { apiRequest } from "@/lib/api";
+import { useCacheInvalidation, defaultQueryOptions } from "@/lib/cache-utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -50,9 +51,11 @@ export default function AdminTeam() {
   const [isOpen, setIsOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<any>(null);
   const { toast } = useToast();
+  const { invalidateTeamRelated } = useCacheInvalidation();
 
   const { data: teamMembers, isLoading } = useQuery({
     queryKey: ["/api/team"],
+    ...defaultQueryOptions,
   });
 
   const form = useForm<TeamMemberFormData>({
@@ -76,8 +79,8 @@ export default function AdminTeam() {
     mutationFn: async (data: TeamMemberFormData) => {
       return await apiRequest("/api/team", "POST", data);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/team"] });
+    onSuccess: async () => {
+      await invalidateTeamRelated();
       setIsOpen(false);
       setEditingMember(null);
       form.reset();
@@ -99,8 +102,8 @@ export default function AdminTeam() {
     mutationFn: async (data: TeamMemberFormData) => {
       return await apiRequest(`/api/team/${editingMember.id}`, "PATCH", data);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/team"] });
+    onSuccess: async () => {
+      await invalidateTeamRelated();
       setIsOpen(false);
       setEditingMember(null);
       form.reset();
@@ -122,8 +125,8 @@ export default function AdminTeam() {
     mutationFn: async (id: string) => {
       return await apiRequest(`/api/team/${id}`, "DELETE");
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/team"] });
+    onSuccess: async () => {
+      await invalidateTeamRelated();
       toast({
         title: "Success",
         description: "Team member removed successfully",

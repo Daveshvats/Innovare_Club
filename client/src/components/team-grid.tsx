@@ -33,6 +33,12 @@ export function TeamGrid({ className = "" }: TeamGridProps) {
       const response = await apiRequest("/api/team", "GET");
       return response;
     },
+    staleTime: 0, // Always consider data stale
+    refetchOnWindowFocus: true, // Refetch when window gains focus
+    refetchOnMount: true, // Refetch when component mounts
+    refetchOnReconnect: true, // Refetch when network reconnects
+    retry: 1, // Retry failed requests once
+    retryDelay: 1000, // Wait 1 second before retry
   });
 
   const containerVariants = {

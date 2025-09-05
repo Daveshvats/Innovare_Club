@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useScrollAnimation } from "@/hooks/use-scroll-animation";
 import { motion, AnimatePresence } from 'framer-motion';
 import { nanoid } from 'nanoid';
+import { defaultQueryOptions } from "@/lib/cache-utils";
 
 // Types
 interface Event {
@@ -35,11 +37,6 @@ export default function Events() {
   const timelineRef = useScrollAnimation();
   
   // State
-  const [events, setEvents] = useState<Event[]>([]);
-  const [featuredEvent, setFeaturedEvent] = useState<Event | null>(null);
-  const [timelineEvents, setTimelineEvents] = useState<Event[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [registerEvent, setRegisterEvent] = useState<Event | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [registrationData, setRegistrationData] = useState<RegistrationData>({
@@ -49,86 +46,26 @@ export default function Events() {
   });
   const [registrationLoading, setRegistrationLoading] = useState(false);
 
-  // Fetch events from database
-  useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch('/api/events');
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-        const eventsData: Event[] = await response.json();
-        console.log('Fetched events:', eventsData);
-        console.log('First event date:', eventsData[0]?.date);
-        console.log('First event date type:', typeof eventsData[0]?.date);
-        
-        // Filter active events and sort by date
-        const activeEvents = eventsData
-          .filter(event => event.isActive)
-          .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-        
-        // Find featured event (only one should be featured)
-        const featured = activeEvents.find(event => event.featured);
-        setFeaturedEvent(featured || null);
-        
-        // Set timeline events (non-featured events)
-        const timeline = activeEvents.filter(event => !event.featured);
-        setTimelineEvents(timeline);
-        
-        setEvents(activeEvents);
-        setError(null);
-      } catch (err) {
-        console.error('Failed to fetch events:', err);
-        setError(err instanceof Error ? err.message : 'Failed to load events');
-        
-        // Fallback to sample data
-        const sampleEvents: Event[] = [
-          {
-            id: '1',
-            title: 'TechFest 2024',
-            description: 'Our biggest annual event featuring cutting-edge presentations, hands-on workshops, and networking opportunities with industry leaders.',
-            date: '2024-03-22T00:00:00Z',
-            time: '10:00 AM - 6:00 PM',
-            location: 'Innovation Center',
-            maxParticipants: 500,
-            currentParticipants: 150,
-            tags: ['Programming', 'Tech Competition', 'Innovation'],
-            imageUrl: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=600',
-            featured: true,
-            isActive: true,
-            createdBy: 'admin',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          },
-          {
-            id: '2',
-            title: 'Code-a-thon Weekend',
-            description: '48-hour intensive coding challenge with amazing prizes and mentorship opportunities.',
-            date: '2024-11-15T00:00:00Z',
-            time: '9:00 AM - 5:00 PM',
-            location: 'Computer Lab',
-            maxParticipants: 50,
-            currentParticipants: 25,
-            tags: ['Coding', 'Competition'],
-            imageUrl: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=600',
-            featured: false,
-            isActive: true,
-            createdBy: 'admin',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          }
-        ];
-        setEvents(sampleEvents);
-        setFeaturedEvent(sampleEvents[0]);
-        setTimelineEvents(sampleEvents.slice(1));
-      } finally {
-        setLoading(false);
+  // Fetch events using React Query
+  const { data: eventsData = [], isLoading: loading, error } = useQuery({
+    queryKey: ["/api/events"],
+    queryFn: async () => {
+      const response = await fetch('/api/events');
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-    };
+      return response.json();
+    },
+    ...defaultQueryOptions,
+  });
 
-    fetchEvents();
-  }, []);
+  // Process events data
+  const events = eventsData
+    .filter((event: Event) => event.isActive)
+    .sort((a: Event, b: Event) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  
+  const featuredEvent = events.find((event: Event) => event.featured) || null;
+  const timelineEvents = events.filter((event: Event) => !event.featured);
 
   // Auto-delete old events (run on component mount)
   useEffect(() => {

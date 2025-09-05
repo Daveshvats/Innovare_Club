@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { apiRequest } from "@/lib/api";
+import { useCacheInvalidation, defaultQueryOptions } from "@/lib/cache-utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -51,9 +52,11 @@ export default function AdminEvents() {
   const [editingEvent, setEditingEvent] = useState<any>(null);
   const [showFeaturedWarning, setShowFeaturedWarning] = useState(false);
   const { toast } = useToast();
+  const { invalidateEventRelated } = useCacheInvalidation();
 
   const { data: events, isLoading } = useQuery({
     queryKey: ["/api/events"],
+    ...defaultQueryOptions,
   });
 
   // Check if there's already a featured event
@@ -89,8 +92,8 @@ export default function AdminEvents() {
       console.log("Frontend processed data:", eventData);
       return await apiRequest("/api/admin/events", "POST", eventData);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+    onSuccess: async () => {
+      await invalidateEventRelated();
       setIsOpen(false);
       setEditingEvent(null);
       form.reset();
@@ -123,8 +126,8 @@ export default function AdminEvents() {
       console.log("Frontend processed update data:", eventData);
       return await apiRequest(`/api/admin/events/${editingEvent.id}`, "PATCH", eventData);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+    onSuccess: async () => {
+      await invalidateEventRelated();
       setIsOpen(false);
       setEditingEvent(null);
       form.reset();
@@ -146,8 +149,8 @@ export default function AdminEvents() {
     mutationFn: async (id: string) => {
       return await apiRequest(`/api/admin/events/${id}`, "DELETE");
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+    onSuccess: async () => {
+      await invalidateEventRelated();
       toast({
         title: "Success",
         description: "Event deleted successfully",

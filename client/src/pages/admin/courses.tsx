@@ -10,6 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { authenticatedRequest } from "@/lib/api";
+import { useCacheInvalidation, defaultQueryOptions } from "@/lib/cache-utils";
 import { 
   Plus, 
   Edit, 
@@ -36,6 +37,7 @@ interface CourseLibrary {
 export default function AdminCourses() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { invalidateCourses } = useCacheInvalidation();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editingCourse, setEditingCourse] = useState<CourseLibrary | null>(null);
   const [formData, setFormData] = useState({
@@ -50,6 +52,7 @@ export default function AdminCourses() {
   const { data: courses = [], isLoading } = useQuery({
     queryKey: ["/api/course-library"],
     queryFn: () => authenticatedRequest("/api/course-library"),
+    ...defaultQueryOptions,
   });
 
   // Create course mutation
@@ -57,8 +60,8 @@ export default function AdminCourses() {
     mutationFn: async (data: any) => {
       return authenticatedRequest("/api/admin/course-library", "POST", data);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/course-library"] });
+    onSuccess: async () => {
+      await invalidateCourses();
       toast({
         title: "Success",
         description: "Course added successfully",
@@ -81,8 +84,8 @@ export default function AdminCourses() {
     mutationFn: async (data: any) => {
       return authenticatedRequest(`/api/admin/course-library/${editingCourse?.id}`, "PATCH", data);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/course-library"] });
+    onSuccess: async () => {
+      await invalidateCourses();
       toast({
         title: "Success",
         description: "Course updated successfully",
@@ -106,8 +109,8 @@ export default function AdminCourses() {
     mutationFn: async (courseId: string) => {
       return authenticatedRequest(`/api/admin/course-library/${courseId}`, "DELETE");
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/course-library"] });
+    onSuccess: async () => {
+      await invalidateCourses();
       toast({
         title: "Success",
         description: "Course deleted successfully",
