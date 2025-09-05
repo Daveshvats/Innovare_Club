@@ -9,6 +9,8 @@ import { createSplineApp } from '@/lib/spline-loader';
 const TechFestBackground = memo<{ className?: string }>(function TechFestBackground({ className = "" }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const appRef = useRef<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let app: any;
@@ -17,12 +19,38 @@ const TechFestBackground = memo<{ className?: string }>(function TechFestBackgro
     async function init() {
       if (!canvasRef.current || canceled) return;
 
+      // Wait for canvas to have proper dimensions
+      const waitForCanvasSize = () => {
+        return new Promise<void>((resolve) => {
+          const checkSize = () => {
+            if (canvasRef.current && !canceled) {
+              const rect = canvasRef.current.getBoundingClientRect();
+              if (rect.width > 0 && rect.height > 0) {
+                resolve();
+              } else {
+                requestAnimationFrame(checkSize);
+              }
+            } else {
+              resolve();
+            }
+          };
+          checkSize();
+        });
+      };
+
       try {
+        setIsLoading(true);
+        setError(null);
+        
+        await waitForCanvasSize();
+        
+        if (!canvasRef.current || canceled) return;
+
         // Use shared Spline runtime loader
         app = await createSplineApp(canvasRef.current, 1.75);
 
         if (canceled) {
-          app.destroy();
+          app.destroy?.();
           return;
         }
 
@@ -31,11 +59,14 @@ const TechFestBackground = memo<{ className?: string }>(function TechFestBackgro
 
         if (!canceled) {
           appRef.current = app;
+          setIsLoading(false);
         } else {
-          app.destroy();
+          app.destroy?.();
         }
       } catch (error) {
         console.error('Failed to load TechFest background scene:', error);
+        setError(error instanceof Error ? error.message : 'Failed to load background scene');
+        setIsLoading(false);
       }
     }
 
@@ -46,9 +77,9 @@ const TechFestBackground = memo<{ className?: string }>(function TechFestBackgro
       canceled = true;
       if (appRef.current) {
         try {
-          appRef.current.destroy();
+          appRef.current.destroy?.();
         } catch (error) {
-          console.error('Error destroying TechFest background app:', error);
+          console.warn('Error destroying TechFest background app:', error);
         }
         appRef.current = null;
       }
@@ -57,6 +88,23 @@ const TechFestBackground = memo<{ className?: string }>(function TechFestBackgro
 
   return (
     <div className={`fixed inset-0 w-full h-full -z-10 ${className}`}>
+      {isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-orange-200/20 to-pink-200/20">
+          <div className="text-center">
+            <div className="animate-pulse text-orange-600">Loading background...</div>
+          </div>
+        </div>
+      )}
+      
+      {error && (
+        <div className="absolute inset-0 flex items-center justify-center bg-red-50/50">
+          <div className="text-center p-4">
+            <div className="text-red-500 text-2xl mb-2">⚠️</div>
+            <p className="text-sm text-red-600">Background failed to load</p>
+          </div>
+        </div>
+      )}
+      
       <canvas
         ref={canvasRef}
         className="w-full h-full"
@@ -66,7 +114,9 @@ const TechFestBackground = memo<{ className?: string }>(function TechFestBackgro
           inset: 0,
           width: '100%',
           height: '100%',
-          pointerEvents: 'none'
+          pointerEvents: 'none',
+          minWidth: '1px',
+          minHeight: '1px'
         }}
       />
     </div>

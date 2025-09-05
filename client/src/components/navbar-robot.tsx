@@ -16,7 +16,30 @@ export const NavbarRobot = memo(function NavbarRobot({ className = "" }: NavbarR
     async function init() {
       if (!canvasRef.current || canceled) return;
 
+      // Wait for canvas to have proper dimensions
+      const waitForCanvasSize = () => {
+        return new Promise<void>((resolve) => {
+          const checkSize = () => {
+            if (canvasRef.current && !canceled) {
+              const rect = canvasRef.current.getBoundingClientRect();
+              if (rect.width > 0 && rect.height > 0) {
+                resolve();
+              } else {
+                requestAnimationFrame(checkSize);
+              }
+            } else {
+              resolve();
+            }
+          };
+          checkSize();
+        });
+      };
+
       try {
+        await waitForCanvasSize();
+        
+        if (!canvasRef.current || canceled) return;
+
         // Use shared Spline runtime loader
         app = await createSplineApp(canvasRef.current, 1.5); // Lower DPR for navbar
 

@@ -1017,14 +1017,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const validatedData = insertTechnofestSchema.parse(req.body);
       const event = await storage.createTechnofestEvent(validatedData);
       
-      // Create Spline component if URL is provided
+      // Create Spline component only if URL is actually a Spline URL
       if (event.spline_right_url) {
-        try {
-          const { componentGenerator } = await import("./component-generator");
-          await componentGenerator.createSplineComponent(event.name, event.spline_right_url);
-          console.log(`Created Spline component for event: ${event.name}`);
-        } catch (componentError) {
-          console.warn(`Failed to create component for event ${event.name}:`, componentError);
+        // Check if it's actually a Spline URL
+        const isSplineUrl = event.spline_right_url.includes('spline.design') || 
+                           event.spline_right_url.includes('.splinecode') ||
+                           event.spline_right_url.includes('spline.app');
+        
+        if (isSplineUrl) {
+          try {
+            const { componentGenerator } = await import("./component-generator");
+            await componentGenerator.createSplineComponent(event.name, event.spline_right_url);
+            console.log(`Created Spline component for event: ${event.name}`);
+          } catch (componentError) {
+            console.warn(`Failed to create component for event ${event.name}:`, componentError);
+          }
+        } else {
+          console.log(`Skipping component creation for ${event.name} - URL is not a Spline URL: ${event.spline_right_url}`);
         }
       }
       
@@ -1034,6 +1043,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(400).json({ 
         message: "Invalid technofest event data", 
         details: error.errors || error.message 
+      });
+    }
+  });
+
+  // Regenerate all Spline components with latest template
+  app.post("/api/admin/technofest/regenerate-components", requireAuth, async (req, res) => {
+    try {
+      const events = await storage.getTechnofestEvents();
+      const splineEvents = events.filter(event => event.spline_right_url);
+      
+      const { componentGenerator } = await import("./component-generator");
+      const results = await componentGenerator.regenerateAllComponents(splineEvents);
+      
+      res.json({ 
+        message: `Regenerated ${results.length} components`, 
+        components: results 
+      });
+    } catch (error: any) {
+      console.error("Component regeneration error:", error);
+      res.status(500).json({ 
+        message: "Failed to regenerate components", 
+        details: error.message 
       });
     }
   });
@@ -1056,10 +1087,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
             await componentGenerator.deleteSplineComponent(oldEvent.name);
           }
           
-          // Create new component if URL provided
+          // Create new component only if URL is actually a Spline URL
           if (event.spline_right_url) {
-            await componentGenerator.createSplineComponent(event.name, event.spline_right_url);
-            console.log(`Updated Spline component for event: ${event.name}`);
+            const isSplineUrl = event.spline_right_url.includes('spline.design') || 
+                               event.spline_right_url.includes('.splinecode') ||
+                               event.spline_right_url.includes('spline.app');
+            
+            if (isSplineUrl) {
+              await componentGenerator.createSplineComponent(event.name, event.spline_right_url);
+              console.log(`Updated Spline component for event: ${event.name}`);
+            } else {
+              console.log(`Skipping component creation for ${event.name} - URL is not a Spline URL: ${event.spline_right_url}`);
+            }
           }
         } catch (componentError) {
           console.warn(`Failed to update component for event ${event.name}:`, componentError);

@@ -1,19 +1,11 @@
-// src/components/PermanentSplineBg.tsx
-import React, { useEffect, useRef, useState, memo } from 'react';
-import { createSplineApp } from '@/lib/spline-loader';
+import { memo, useRef, useEffect, useState } from "react";
+import { createSplineApp } from "@/lib/spline-loader";
 
-const BG_SCENE = 'https://prod.spline.design/DC0L-NagpocfiwmY/scene.splinecode';
-
-export const PermanentSplineBg = memo(function PermanentSplineBg({
-  url = BG_SCENE,
-  /** Lower = more vibrant; we reduced from 0.25 → 0.06 */
-  tintOpacity = 0.06,
-  className = '',
-}: {
-  url?: string;
-  tintOpacity?: number;
+interface Test1Props {
   className?: string;
-}) {
+}
+
+export const Test1 = memo(function Test1({ className = "" }: Test1Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const appRef = useRef<any>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -54,15 +46,15 @@ export const PermanentSplineBg = memo(function PermanentSplineBg({
         if (!canvasRef.current || canceled) return;
 
         // Use shared Spline runtime loader
-        app = await createSplineApp(canvasRef.current, 1.0); // Very low DPR for background
+        app = await createSplineApp(canvasRef.current, 1.75);
 
         if (canceled) {
           app.destroy?.();
           return;
         }
 
-        // Load the Spline scene
-        await app.load(url);
+        // Load the Spline scene for Test1
+        await app.load('https://prod.spline.design/r8XEjn9WlpwRm3DU/scene.splinecode');
 
         if (!canceled) {
           appRef.current = app;
@@ -71,8 +63,8 @@ export const PermanentSplineBg = memo(function PermanentSplineBg({
           app.destroy?.();
         }
       } catch (error) {
-        console.error('Failed to load PermanentSplineBg scene:', error);
-        setError(error instanceof Error ? error.message : 'Failed to load background scene');
+        console.error('Failed to load Test1 Spline scene:', error);
+        setError(error instanceof Error ? error.message : 'Failed to load 3D scene');
         setIsLoading(false);
       }
     }
@@ -86,48 +78,43 @@ export const PermanentSplineBg = memo(function PermanentSplineBg({
         try {
           appRef.current.destroy?.();
         } catch (error) {
-          console.warn('Error destroying PermanentSplineBg app:', error);
+          console.warn('Error destroying Test1 Spline app:', error);
         }
         appRef.current = null;
       }
     };
-  }, [url]);
+  }, []);
 
   return (
-    <div className={`pointer-events-none fixed inset-0 -z-20 ${className}`}>
+    <div
+      className={`relative overflow-hidden rounded-2xl w-full h-64 sm:h-80 md:h-96 lg:h-[500px] ${className}`}
+    >
       {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-blue-50/20 to-purple-50/20">
+        <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-2xl">
           <div className="text-center">
-            <div className="animate-pulse text-blue-600">Loading background...</div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Loading 3D scene...</p>
           </div>
         </div>
       )}
       
       {error && (
-        <div className="absolute inset-0 flex items-center justify-center bg-red-50/50">
+        <div className="absolute inset-0 flex items-center justify-center bg-red-50 dark:bg-red-900/20 rounded-2xl">
           <div className="text-center p-4">
-            <div className="text-red-500 text-2xl mb-2">⚠️</div>
-            <p className="text-sm text-red-600">Background failed to load</p>
+            <div className="text-red-500 text-4xl mb-2">⚠️</div>
+            <p className="text-sm text-red-600 dark:text-red-400 mb-2">Failed to load 3D scene</p>
+            <p className="text-xs text-red-500 dark:text-red-500">{error}</p>
           </div>
         </div>
       )}
       
       <canvas
         ref={canvasRef}
-        className="w-full h-full"
+        className="w-full h-full block outline-none"
         style={{
-          width: '100%',
-          height: '100%',
+          background: 'transparent',
           display: 'block',
-          minWidth: '1px',
-          minHeight: '1px'
         }}
-      />
-      
-      {/* Softer tint so the background is more vibrant */}
-      <div
-        className="absolute inset-0"
-        style={{ background: `rgba(0,0,0,${tintOpacity})` }}
       />
     </div>
   );

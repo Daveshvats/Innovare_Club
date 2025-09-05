@@ -1,4 +1,5 @@
-import { memo, useEffect, useRef } from 'react';
+import { memo, useEffect, useRef, useState } from 'react';
+import { createSplineApp } from '@/lib/spline-loader';
 
 interface SplineLoaderProps {
   className?: string;
@@ -7,29 +8,64 @@ interface SplineLoaderProps {
 export const SplineLoader = memo(function SplineLoader({ className = "" }: SplineLoaderProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const appRef = useRef<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    let Application: any;
     let app: any;
+    let canceled = false;
 
     async function init() {
-      if (!canvasRef.current) return;
+      if (!canvasRef.current || canceled) return;
+
+      // Wait for canvas to have proper dimensions
+      const waitForCanvasSize = () => {
+        return new Promise<void>((resolve) => {
+          const checkSize = () => {
+            if (canvasRef.current && !canceled) {
+              const rect = canvasRef.current.getBoundingClientRect();
+              if (rect.width > 0 && rect.height > 0) {
+                resolve();
+              } else {
+                requestAnimationFrame(checkSize);
+              }
+            } else {
+              resolve();
+            }
+          };
+          checkSize();
+        });
+      };
 
       try {
-        // Dynamically import the Spline runtime ES module from CDN
-        // @ts-ignore - Dynamic import from CDN
-        const module = await import('https://unpkg.com/@splinetool/runtime@1.10.56/build/runtime.js');
-        Application = module.Application;
+        setIsLoading(true);
+        setError(null);
+        
+        await waitForCanvasSize();
+        
+        if (!canvasRef.current || canceled) return;
 
-        // Initialize the 3D app on the canvas
-        app = new Application(canvasRef.current);
+        // Use shared Spline runtime loader
+        app = await createSplineApp(canvasRef.current, 1.5); // Lower DPR for loader
+
+        if (canceled) {
+          app.destroy?.();
+          return;
+        }
 
         // Load your specific Spline scene
         await app.load('https://prod.spline.design/e3edlM-UvyG2xiRK/scene.splinecode');
 
-        appRef.current = app;
+        if (!canceled) {
+          appRef.current = app;
+          setIsLoading(false);
+        } else {
+          app.destroy?.();
+        }
       } catch (error) {
         console.error('Failed to load Spline scene:', error);
+        setError(error instanceof Error ? error.message : 'Failed to load 3D scene');
+        setIsLoading(false);
       }
     }
 
@@ -37,9 +73,9 @@ export const SplineLoader = memo(function SplineLoader({ className = "" }: Splin
 
     // Cleanup on unmount
     return () => {
+      canceled = true;
       if (appRef.current) {
         try {
-          // Use optional chaining to safely call destroy method
           appRef.current.destroy?.();
         } catch (error) {
           console.warn('Error destroying Spline app:', error);
@@ -49,8 +85,27 @@ export const SplineLoader = memo(function SplineLoader({ className = "" }: Splin
     };
   }, []);
 
- return (
+  return (
     <div className={`fixed inset-0 bg-tech-light z-50 flex items-center justify-center ${className}`}>
+      {isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-tech-light">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+            <p className="text-sm text-gray-600">Loading...</p>
+          </div>
+        </div>
+      )}
+      
+      {error && (
+        <div className="absolute inset-0 flex items-center justify-center bg-red-50">
+          <div className="text-center p-4">
+            <div className="text-red-500 text-4xl mb-2">⚠️</div>
+            <p className="text-sm text-red-600 mb-2">Failed to load 3D scene</p>
+            <p className="text-xs text-red-500">{error}</p>
+          </div>
+        </div>
+      )}
+      
       <div className="relative w-full h-full max-w-full max-h-full overflow-hidden">
         <canvas
           ref={canvasRef}
@@ -64,6 +119,8 @@ export const SplineLoader = memo(function SplineLoader({ className = "" }: Splin
             objectFit: "contain",
             background: "transparent",
             display: "block",
+            minWidth: '1px',
+            minHeight: '1px'
           }}
         />
       </div>

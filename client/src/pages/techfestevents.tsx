@@ -4,21 +4,8 @@ import React, { useEffect, useState, useRef, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { HoverBorderGradient } from '@/components/ui/hover-border-gradient';
 
-// Helper function to detect if URL is a Spline URL
-const isSplineUrl = (url: string): boolean => {
-  return url.includes('spline.design') || url.includes('.splinecode');
-};
-
-// Helper function to detect if URL is a regular image
-const isImageUrl = (url: string): boolean => {
-  const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp'];
-  const lowerUrl = url.toLowerCase();
-  return imageExtensions.some(ext => lowerUrl.includes(ext)) || 
-         lowerUrl.includes('unsplash.com') || 
-         lowerUrl.includes('images.') ||
-         lowerUrl.includes('imgur.com') ||
-         lowerUrl.includes('cloudinary.com');
-};
+import { isSplineUrl, isImageUrl, getContentType } from '@/lib/url-utils';
+import { createSplineApp } from '@/lib/spline-loader';
 
 // Dynamic component loader for generated Spline components and image fallbacks
 const DynamicSplineComponent = memo<{ 
@@ -32,15 +19,32 @@ const DynamicSplineComponent = memo<{
   useEffect(() => {
     const loadComponent = async () => {
       try {
-        // If it's a regular image URL, skip Spline component loading
-        if (fallbackUrl && isImageUrl(fallbackUrl)) {
-          console.log(`Detected image URL for ${eventName}, skipping Spline component loading`);
-          setIsLoading(false);
-          return;
+        // Add a small delay to prevent race conditions when multiple components load simultaneously
+        await new Promise(resolve => setTimeout(resolve, Math.random() * 100));
+        
+        // First, check if we have a fallback URL and determine its type
+        if (fallbackUrl) {
+          const contentType = getContentType(fallbackUrl);
+          console.log(`Event: ${eventName}, URL: ${fallbackUrl}, Content Type: ${contentType}`);
+          
+          if (contentType === 'image' || contentType === 'video') {
+            console.log(`Detected ${contentType} URL for ${eventName}, skipping Spline component loading`);
+            setIsLoading(false);
+            return;
+          }
+          
+          if (contentType === 'spline') {
+            console.log(`Detected Spline URL for ${eventName}, will try generated component first`);
+            // Don't return here - continue to try loading the generated component
+          }
         }
 
+        // Try to load generated component for Spline URLs or when no fallback URL
+        console.log(`Trying to load generated component for ${eventName}`);
+        
         // Convert event name to component name (same logic as component generator)
         const componentName = eventName.toLowerCase().replace(/[^a-z0-9]/g, '-');
+        console.log(`Loading component for event: ${eventName} -> ${componentName}.tsx`);
         
         // Try to dynamically import the generated component
         const componentModule = await import(`@/components/generated/${componentName}.tsx`);
@@ -50,13 +54,17 @@ const DynamicSplineComponent = memo<{
           .split(/[^a-zA-Z0-9]+/)
           .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
           .join('');
+        console.log(`Looking for export: ${exportName}`);
         const ComponentClass = componentModule[exportName];
         
         if (ComponentClass) {
+          console.log(`Successfully loaded component: ${exportName}`);
           setSplineComponent(() => ComponentClass);
+        } else {
+          console.log(`Component ${exportName} not found in module. Available exports:`, Object.keys(componentModule));
         }
       } catch (error) {
-        console.log(`No generated component found for ${eventName}, using fallback`);
+        console.log(`No generated component found for ${eventName}, using fallback:`, error);
       } finally {
         setIsLoading(false);
       }
@@ -80,8 +88,10 @@ const DynamicSplineComponent = memo<{
 
   // Handle fallback URL
   if (fallbackUrl) {
+    const contentType = getContentType(fallbackUrl);
+    
     // If it's a regular image URL, render as image
-    if (isImageUrl(fallbackUrl)) {
+    if (contentType === 'image') {
       return (
         <div className={`w-full h-full ${className}`}>
           <img 
@@ -105,8 +115,33 @@ const DynamicSplineComponent = memo<{
       );
     }
     
+    // If it's a video URL, render as video
+    if (contentType === 'video') {
+      return (
+        <div className={`w-full h-full ${className}`}>
+          <video 
+            src={fallbackUrl}
+            className="w-full h-full object-cover rounded-xl"
+            style={{ 
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              borderRadius: '0.75rem'
+            }}
+            controls
+            muted
+            loop
+            playsInline
+            onError={(e) => {
+              console.error('Failed to load video:', fallbackUrl);
+            }}
+          />
+        </div>
+      );
+    }
+    
     // If it's a Spline URL, render as iframe
-    if (isSplineUrl(fallbackUrl)) {
+    if (contentType === 'spline') {
       return (
         <div className={`w-full h-full ${className}`}>
           <iframe 
@@ -118,7 +153,7 @@ const DynamicSplineComponent = memo<{
               border: 'none',
               borderRadius: '0.75rem'
             }}
-            title="3D Background"
+            title={`${eventName} Spline scene`}
             loading="lazy"
           />
         </div>
@@ -166,29 +201,64 @@ const DynamicSplineComponent = memo<{
 const TechEventsBackground = memo<{ className?: string }>(function TechEventsBackground({ className = "" }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const appRef = useRef<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    let Application: any;
     let app: any;
+    let canceled = false;
 
     async function init() {
-      if (!canvasRef.current) return;
+      if (!canvasRef.current || canceled) return;
+
+      // Wait for canvas to have proper dimensions
+      const waitForCanvasSize = () => {
+        return new Promise<void>((resolve) => {
+          const checkSize = () => {
+            if (canvasRef.current && !canceled) {
+              const rect = canvasRef.current.getBoundingClientRect();
+              if (rect.width > 0 && rect.height > 0) {
+                resolve();
+              } else {
+                requestAnimationFrame(checkSize);
+              }
+            } else {
+              resolve();
+            }
+          };
+          checkSize();
+        });
+      };
 
       try {
-        // Dynamically import the Spline runtime ES module from CDN
-        // @ts-ignore - Dynamic import from CDN
-        const module = await import('https://unpkg.com/@splinetool/runtime@1.10.56/build/runtime.js');
-        Application = module.Application;
+        setIsLoading(true);
+        setError(null);
+        
+        await waitForCanvasSize();
+        
+        if (!canvasRef.current || canceled) return;
 
-        // Initialize the 3D app on the canvas
-        app = new Application(canvasRef.current);
+        // Use shared Spline runtime loader
+        app = await createSplineApp(canvasRef.current, 1.5); // Lower DPR for background
+
+        if (canceled) {
+          app.destroy?.();
+          return;
+        }
 
         // Load the specific Spline scene
         await app.load('https://prod.spline.design/DC0L-NagpocfiwmY/scene.splinecode');
 
-        appRef.current = app;
+        if (!canceled) {
+          appRef.current = app;
+          setIsLoading(false);
+        } else {
+          app.destroy?.();
+        }
       } catch (error) {
         console.error('Failed to load TechEvents background scene:', error);
+        setError(error instanceof Error ? error.message : 'Failed to load background scene');
+        setIsLoading(false);
       }
     }
 
@@ -196,11 +266,12 @@ const TechEventsBackground = memo<{ className?: string }>(function TechEventsBac
 
     // Cleanup on unmount
     return () => {
+      canceled = true;
       if (appRef.current) {
         try {
-          appRef.current.destroy();
+          appRef.current.destroy?.();
         } catch (error) {
-          console.error('Error destroying TechEvents background app:', error);
+          console.warn('Error destroying TechEvents background app:', error);
         }
         appRef.current = null;
       }
@@ -209,6 +280,23 @@ const TechEventsBackground = memo<{ className?: string }>(function TechEventsBac
 
   return (
     <div className={`fixed inset-0 w-full h-full -z-10 ${className}`}>
+      {isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-tech-blue/10 to-tech-green/10">
+          <div className="text-center">
+            <div className="animate-pulse text-tech-grey">Loading background...</div>
+          </div>
+        </div>
+      )}
+      
+      {error && (
+        <div className="absolute inset-0 flex items-center justify-center bg-red-50/50">
+          <div className="text-center p-4">
+            <div className="text-red-500 text-2xl mb-2">⚠️</div>
+            <p className="text-sm text-red-600">Background failed to load</p>
+          </div>
+        </div>
+      )}
+      
       <canvas
         ref={canvasRef}
         className="w-full h-full"
@@ -218,7 +306,9 @@ const TechEventsBackground = memo<{ className?: string }>(function TechEventsBac
           inset: 0,
           width: '100%',
           height: '100%',
-          pointerEvents: 'none'
+          pointerEvents: 'none',
+          minWidth: '1px',
+          minHeight: '1px'
         }}
       />
     </div>
@@ -601,6 +691,14 @@ const TechEvents = memo(function TechEvents() {
                     }}
                     viewport={{ once: false, amount: 0.1, margin: '0px' }}
                   >
+                    {(() => {
+                      console.log(`Event: ${event.name}, Spline URL: ${event.spline_right_url}`);
+                      if (event.spline_right_url) {
+                        const contentType = getContentType(event.spline_right_url);
+                        console.log(`Content type for ${event.name}: ${contentType}`);
+                      }
+                      return null;
+                    })()}
                     {event.spline_right_url ? (
                       <div className="w-80 h-80 sm:w-96 sm:h-96 md:w-[28rem] md:h-[28rem] lg:w-[32rem] lg:h-[32rem] spline-container rounded-xl overflow-hidden bg-transparent flex items-center justify-center">
                         <DynamicSplineComponent

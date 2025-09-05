@@ -59,6 +59,18 @@ export async function createSplineApp(
   canvas: HTMLCanvasElement,
   maxDpr: number = 1.75
 ): Promise<SplineApp> {
+  // Additional canvas size validation to prevent WebGL errors
+  const rect = canvas.getBoundingClientRect();
+  if (rect.width <= 0 || rect.height <= 0) {
+    throw new Error(`Canvas has invalid dimensions: ${rect.width}x${rect.height}. Cannot create WebGL context.`);
+  }
+
+  // Ensure canvas has proper dimensions
+  if (canvas.width <= 0 || canvas.height <= 0) {
+    canvas.width = Math.max(1, rect.width);
+    canvas.height = Math.max(1, rect.height);
+  }
+
   const runtime = await loadSplineRuntime();
   const app = new runtime.Application(canvas);
 
@@ -90,4 +102,44 @@ export function preloadSplineRuntime(): void {
       // Silent fail for preload
     });
   }
+}
+
+/**
+ * Waits for canvas to have proper dimensions before initializing WebGL
+ * @param canvas - The canvas element to check
+ * @param maxAttempts - Maximum number of attempts (default: 50)
+ * @param delay - Delay between attempts in ms (default: 16)
+ * @returns Promise<void> - Resolves when canvas has valid dimensions
+ */
+export function waitForCanvasSize(
+  canvas: HTMLCanvasElement,
+  maxAttempts: number = 50,
+  delay: number = 16
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    let attempts = 0;
+    
+    const checkSize = () => {
+      attempts++;
+      
+      if (attempts > maxAttempts) {
+        reject(new Error(`Canvas size validation timeout after ${maxAttempts} attempts`));
+        return;
+      }
+      
+      const rect = canvas.getBoundingClientRect();
+      if (rect.width > 0 && rect.height > 0) {
+        // Ensure canvas has proper dimensions
+        if (canvas.width <= 0 || canvas.height <= 0) {
+          canvas.width = Math.max(1, rect.width);
+          canvas.height = Math.max(1, rect.height);
+        }
+        resolve();
+      } else {
+        setTimeout(checkSize, delay);
+      }
+    };
+    
+    checkSize();
+  });
 }
