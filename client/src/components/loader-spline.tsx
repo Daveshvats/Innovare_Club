@@ -39,9 +39,10 @@ export const SplineLoader = memo(function SplineLoader({ className = "" }: Splin
     return () => {
       if (appRef.current) {
         try {
-          appRef.current.destroy();
+          // Use optional chaining to safely call destroy method
+          appRef.current.destroy?.();
         } catch (error) {
-          console.error('Error destroying Spline app:', error);
+          console.warn('Error destroying Spline app:', error);
         }
         appRef.current = null;
       }

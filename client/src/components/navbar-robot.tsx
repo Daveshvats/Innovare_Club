@@ -21,7 +21,7 @@ export const NavbarRobot = memo(function NavbarRobot({ className = "" }: NavbarR
         app = await createSplineApp(canvasRef.current, 1.5); // Lower DPR for navbar
 
         if (canceled) {
-          app.destroy();
+          app.destroy?.();
           return;
         }
 
@@ -31,7 +31,7 @@ export const NavbarRobot = memo(function NavbarRobot({ className = "" }: NavbarR
         if (!canceled) {
           appRef.current = app;
         } else {
-          app.destroy();
+          app.destroy?.();
         }
       } catch (error) {
         console.error('Failed to load Spline scene:', error);
@@ -45,9 +45,9 @@ export const NavbarRobot = memo(function NavbarRobot({ className = "" }: NavbarR
       canceled = true;
       if (appRef.current) {
         try {
-          appRef.current.destroy();
+          appRef.current.destroy?.();
         } catch (error) {
-          console.error('Error destroying Spline app:', error);
+          console.warn('Error destroying Spline app:', error);
         }
         appRef.current = null;
       }

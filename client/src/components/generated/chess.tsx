@@ -39,9 +39,9 @@ export const Chess = memo(function Chess({ className = "" }: ChessProps) {
     return () => {
       if (appRef.current) {
         try {
-          appRef.current.destroy();
+          appRef.current.destroy?.();
         } catch (error) {
-          console.error('Error destroying Chess Spline app:', error);
+          console.warn('Error destroying Chess Spline app:', error);
         }
         appRef.current = null;
       }

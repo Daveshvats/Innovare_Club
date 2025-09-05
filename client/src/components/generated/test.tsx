@@ -39,9 +39,9 @@ export const Test = memo(function Test({ className = "" }: TestProps) {
     return () => {
       if (appRef.current) {
         try {
-          appRef.current.destroy();
+          appRef.current.destroy?.();
         } catch (error) {
-          console.error('Error destroying TEST Spline app:', error);
+          console.warn('Error destroying TEST Spline app:', error);
         }
         appRef.current = null;
       }
